@@ -687,20 +687,47 @@
       }
     }
 
-    // 音声読み上げヘルパー
+   
+    // スマホ最適化版 音声読み上げ関数
     function speakText(text, onEndCallback) {
-      if (!state.speechSynth) {
+      if (!window.speechSynthesis) {
         if (onEndCallback) onEndCallback();
         return;
       }
-      state.speechSynth.cancel();
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+
       const uttr = new SpeechSynthesisUtterance(text);
       uttr.lang = 'ja-JP';
-      uttr.rate = 1.05;
+      uttr.rate = 1.0;
       uttr.pitch = 1.0;
-      uttr.onend = () => { if (onEndCallback) onEndCallback(); };
-      uttr.onerror = () => { if (onEndCallback) onEndCallback(); };
-      state.speechSynth.speak(uttr);
+      uttr.volume = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const jaVoice = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+      if (jaVoice) {
+        uttr.voice = jaVoice;
+      }
+
+      let hasEnded = false;
+      uttr.onend = () => {
+        if (!hasEnded) {
+          hasEnded = true;
+          if (onEndCallback) onEndCallback();
+        }
+      };
+      uttr.onerror = (e) => {
+        console.warn("音声再生通知:", e);
+        if (!hasEnded) {
+          hasEnded = true;
+          if (onEndCallback) onEndCallback();
+        }
+      };
+
+      setTimeout(() => {
+        window.speechSynthesis.speak(uttr);
+      }, 50);
     }
 
     // ==================== 初期化・イベント設定 ====================
