@@ -96,7 +96,7 @@
 
           <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1">
             <div class="font-bold text-sm text-amber-900 mb-1">【作業規定およびタスクルール】</div>
-            <p>1. あなたは遠隔の他参加者3名と4人1組の「照合検査班」に割り当てられています。</p>
+            <p>1. あなたは遠隔の他参加者3名と4人1組の「照合検査班」に割り当てられます。</p>
             <p>2. <strong>チーム4名全員が3分以内に全50問をミスなく完了</strong>した場合のみ「合格」となります。</p>
             <p>3. <strong>1名でも未達または誤判定（見落とし）が発生した時点で連帯責任によりチーム全員が不合格</strong>となります。</p>
             <p>4. 確実な照合のため、規定の「詳細照合ツール」を用いて1件ずつ検査を行うことが定められています。</p>
@@ -115,12 +115,25 @@
       </section>
 
       <!-- ==========================================
-           画面2: チュートリアル画面 (練習2問)
+           画面2: チュートリアル画面 (練習2問 ＋ マッチング演出)
            ========================================== -->
-      <section id="screenTutorial" class="hidden p-6 space-y-6">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+      <section id="screenTutorial" class="hidden p-6 space-y-5">
+        <!-- 上部：マッチング進行中ステータスバー -->
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 flex items-center justify-between text-xs shadow-sm">
+          <div class="flex items-center space-x-2">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <span class="font-medium text-slate-600">照合検査班の編成:</span>
+            <span id="tutMatchingCount" class="font-mono font-bold text-amber-700">学内待機者を探索中... (1/4名接続)</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-mono">LAN Sync: Active</span>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex items-center justify-between">
           <div>
-            <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded font-bold uppercase tracking-wider">チュートリアル練習</span>
+            <span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider">チュートリアル練習</span>
             <span id="tutStepBadge" class="ml-2 font-bold text-blue-900 text-sm">練習 1 / 2 問目</span>
           </div>
           <span class="text-xs text-blue-700">※練習セッション（タイマーは動作しません）</span>
@@ -148,7 +161,7 @@
           </div>
         </div>
 
-        <!-- 詳細照合ツール枠（枠色変化対応） -->
+        <!-- 詳細照合ツール枠 -->
         <div id="tutToolContainer" class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
@@ -166,7 +179,7 @@
         </div>
 
         <!-- 判定ボタン -->
-        <div class="grid grid-cols-2 gap-4 pt-2">
+        <div class="grid grid-cols-2 gap-4 pt-1">
           <button id="btnTutMismatch" class="py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-lg transition shadow">
             ✕ 不一致（差し戻し）
           </button>
@@ -175,40 +188,115 @@
           </button>
         </div>
 
-        <div id="tutEndArea" class="hidden text-center pt-4 border-t border-slate-200 space-y-2">
-          <p class="text-emerald-700 font-bold text-sm">✓ チュートリアル練習がすべて完了しました！</p>
-          <button id="btnFinishTutorial" class="px-8 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-base shadow transition">
-            チュートリアルを終了する →
-          </button>
-          <p class="text-xs text-slate-500">※このボタンを押してもまだ本番タスクは開始されません。</p>
+        <!-- ★ チュートリアル終了時のマッチング成立エリア ★ -->
+        <div id="tutEndArea" class="hidden pt-3 border-t border-slate-200 space-y-4">
+          <!-- 1. マッチング処理中アニメーション（1.5秒間表示） -->
+          <div id="matchingLoadingBox" class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-center">
+            <div class="flex items-center justify-center space-x-2 text-sm font-bold text-slate-700">
+              <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>他参加者のチュートリアル完了を待機し、チームを編成しています...</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div id="matchProgressFill" class="bg-blue-600 h-full w-0 transition-all duration-1000"></div>
+            </div>
+            <p id="matchProgressDetail" class="text-xs text-slate-500 font-mono">学内ネットワーク同期中 (1/4人)</p>
+          </div>
+
+          <!-- 2. マッチング完了カード（アニメーション完了後に表示） -->
+          <div id="matchingCompleteBox" class="hidden p-5 bg-emerald-50 border-2 border-emerald-400 rounded-xl space-y-4 shadow-sm">
+            <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <div class="flex items-center space-x-2">
+                <span class="w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm">✓</span>
+                <span class="font-bold text-emerald-900 text-base">チームマッチング成立！</span>
+              </div>
+              <span id="tutAssignedTeamBadge" class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded font-bold tracking-wider">
+                検査第3班（4名編成）
+              </span>
+            </div>
+
+            <!-- 4名のメンバーカード -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div class="p-3 bg-white rounded-lg border-2 border-emerald-400 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">あなた</div>
+                <div id="cardYouId" class="font-mono font-black text-emerald-700 text-base mt-0.5">P001</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1">● チュートリアル済</div>
+              </div>
+              <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">参加者 2</div>
+                <div id="cardPeer1Id" class="font-mono font-bold text-slate-700 text-base mt-0.5">P-382</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1">● 接続完了・待機中</div>
+              </div>
+              <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">参加者 3</div>
+                <div id="cardPeer2Id" class="font-mono font-bold text-slate-700 text-base mt-0.5">P-519</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1">● 接続完了・待機中</div>
+              </div>
+              <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">参加者 4</div>
+                <div id="cardPeer3Id" class="font-mono font-bold text-slate-700 text-base mt-0.5">P-104</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1">● 接続完了・待機中</div>
+              </div>
+            </div>
+
+            <div class="bg-white/80 p-3 rounded border border-emerald-200 text-xs text-emerald-900 leading-relaxed space-y-1">
+              <p class="font-bold">【重要：チーム連帯責任ルールが有効化されました】</p>
+              <p>チーム4名全員が3分以内に全50問をミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。</p>
+            </div>
+
+            <div class="text-center pt-1">
+              <button id="btnFinishTutorial" class="w-full sm:w-auto px-10 py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-base shadow transition transform hover:-translate-y-0.5">
+                本番タスクのスタンバイへ進む →
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- ==========================================
-           画面3: 本番開始スタンバイ画面
+           画面3: 本番開始スタンバイ画面 (チーム編成確定)
            ========================================== -->
-      <section id="screenReady" class="hidden p-8 space-y-8 relative">
+      <section id="screenReady" class="hidden p-8 space-y-6 relative">
         <div class="flex justify-end">
           <button id="btnRestartTutorial" class="text-xs text-blue-600 hover:text-blue-800 font-semibold px-3 py-1.5 border border-blue-200 rounded-md hover:bg-blue-50 transition">
             ↺ チュートリアルをもう一度行う
           </button>
         </div>
 
-        <div class="text-center max-w-lg mx-auto space-y-4">
+        <div class="text-center max-w-lg mx-auto space-y-5">
           <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
             ⏱
           </div>
-          <h2 class="text-2xl font-bold text-slate-800">本番データ照合タスクの準備完了</h2>
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-left text-xs text-slate-600 space-y-2">
-            <div><strong>担当ID:</strong> <span id="readyPid" class="font-mono font-bold text-slate-800">P001</span></div>
-            <div><strong>制限時間:</strong> 180秒（3分00秒）</div>
-            <div><strong>タスクノルマ:</strong> 全50問（未達・誤判定は連帯不合格）</div>
+          <h2 class="text-2xl font-bold text-slate-800">本番データ照合タスクのスタンバイ完了</h2>
+
+          <!-- チーム編成ステータスカード -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs text-slate-600 space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-800 text-sm" id="readyTeamTitle">照合検査チーム：検査第3班</span>
+              <span class="bg-emerald-100 text-emerald-700 font-mono font-bold px-2 py-0.5 rounded text-[11px]">4名 オンライン</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+              <div><strong>あなたのID:</strong> <span id="readyPid" class="font-mono font-bold text-blue-600">P001</span> (準備完了)</div>
+              <div><strong>参加者2:</strong> <span id="readyPeer1" class="font-mono text-slate-700">P-382</span> (待機中)</div>
+              <div><strong>参加者3:</strong> <span id="readyPeer2" class="font-mono text-slate-700">P-519</span> (待機中)</div>
+              <div><strong>参加者4:</strong> <span id="readyPeer3" class="font-mono text-slate-700">P-104</span> (待機中)</div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-2 space-y-1 text-[11px] text-slate-500">
+              <div><strong>制限時間:</strong> 180秒（3分00秒）</div>
+              <div><strong>合格ノルマ:</strong> 全50問（未達・誤判定は4名連帯不合格）</div>
+            </div>
           </div>
-          <p class="text-xs text-rose-600 font-bold">
-            ※下のボタンを押した瞬間に3分間のカウントダウンが開始されます。心の準備が整ってから開始してください。
+
+          <p class="text-xs text-rose-600 font-bold leading-relaxed">
+            ※下のボタンを押した瞬間に、チーム4名全員の3分間タイマーが一斉に同期スタートします。心の準備が整ってから開始してください。
           </p>
+
           <button id="btnStartMainTask" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
-            本番タスクを開始する（180秒タイマー起動）
+            本番タスクを開始する（180秒タイマー同期起動）
           </button>
         </div>
       </section>
@@ -217,9 +305,14 @@
            画面4: 本番データ照合タスク画面
            ========================================== -->
       <section id="screenTask" class="hidden p-6 space-y-5">
-        <!-- 上部ヘッダー（中央特大タイマー） -->
-        <div class="flex flex-col items-center justify-center border-b border-slate-200 pb-3">
-          <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest">残り制限時間</span>
+        <!-- 上部ヘッダー（中央特大タイマー ＆ チームバッジ） -->
+        <div class="flex flex-col items-center justify-center border-b border-slate-200 pb-3 relative">
+          <div class="absolute right-0 top-0 flex items-center space-x-1.5 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded text-xs text-slate-600">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="taskHeaderTeamBadge" class="font-medium font-mono text-[11px]">検査第3班 [4名同期中]</span>
+          </div>
+
+          <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">残り制限時間</span>
           <div id="taskTimer" class="font-mono text-5xl md:text-6xl font-black text-slate-800 tracking-tight my-1">
             03:00
           </div>
@@ -247,7 +340,7 @@
           </div>
         </div>
 
-        <!-- 詳細照合ツール枠（枠色変化対応） -->
+        <!-- 詳細照合ツール枠 -->
         <div id="mainToolContainer" class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
@@ -341,30 +434,24 @@
       <section id="screenChat" class="hidden p-6">
         <div class="grid grid-cols-12 gap-6 items-start">
 
-          <!-- 左カラム: アバター枠 (常時表示) -->
+          <!-- 左カラム: アバター枠 -->
           <div class="col-span-12 md:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center sticky top-4 shadow-sm min-h-[320px]">
             <span class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">品質管理AI「AIReN」</span>
             
             <div id="avatarContainer" class="w-48 h-48 flex items-center justify-center relative">
-              <!-- SVG アバター (条件A/B) -->
               <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
-                <!-- 身体・スーツ -->
                 <g id="avatarBody">
                   <path d="M 40 190 Q 100 130 160 190 Z" fill="#334155"/>
                   <polygon points="100,140 85,190 115,190" fill="#ffffff"/>
                   <polygon points="100,150 95,190 105,190" fill="#2563eb"/>
                 </g>
-                <!-- 頭部 -->
                 <g id="avatarHead" class="origin-bottom">
                   <ellipse cx="100" cy="95" rx="42" ry="48" fill="#fde047" opacity="0.15"/>
                   <ellipse cx="100" cy="95" rx="38" ry="44" fill="#fed7aa"/>
-                  <!-- 髪 -->
                   <path d="M 62 85 Q 100 45 138 85 Q 140 60 100 55 Q 60 60 62 85 Z" fill="#1e293b"/>
-                  <!-- 眉 -->
                   <line x1="78" y1="78" x2="92" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
                   <line x1="122" y1="78" x2="108" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
-                  <!-- 目 -->
                   <g id="leftEye">
                     <circle cx="85" cy="90" r="4.5" fill="#1e293b"/>
                     <circle cx="86" cy="88.5" r="1.5" fill="#ffffff"/>
@@ -373,17 +460,13 @@
                     <circle cx="115" cy="90" r="4.5" fill="#1e293b"/>
                     <circle cx="116" cy="88.5" r="1.5" fill="#ffffff"/>
                   </g>
-                  <!-- 鼻 -->
                   <path d="M 100 92 L 98 102 L 102 102" stroke="#d97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                  <!-- 口 (モーフィング口パク) -->
                   <path id="mouthPath" d="M 90 115 Q 100 118 110 115" stroke="#991b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                 </g>
               </svg>
 
-              <!-- 音声波形 Canvas (条件C) -->
               <canvas id="audioWaveCanvas" width="180" height="180" class="hidden"></canvas>
 
-              <!-- 白紙 (条件D) -->
               <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
                 [AIReN 音声ヒアリング]
               </div>
@@ -396,12 +479,9 @@
 
           <!-- 右カラム: 対話メッセージ & 入力 -->
           <div class="col-span-12 md:col-span-8 flex flex-col h-[520px] bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-            <!-- メッセージタイムライン -->
             <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-4">
-              <!-- JSで動的生成 -->
             </div>
 
-            <!-- 入力フォームエリア -->
             <div class="bg-white border-t border-slate-200 p-4 space-y-2">
               <div class="flex items-center justify-between text-xs text-slate-500">
                 <span>あなたの回答を入力してください（※15文字以上）</span>
@@ -432,7 +512,6 @@
         </div>
 
         <form id="formSurvey" class="space-y-6 max-w-2xl mx-auto">
-          <!-- Q1 -->
           <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-sm font-semibold text-slate-800">
               Q1. 回答時、AIReNから責められている、または品定めされているような気持ちになりましたか？
@@ -460,7 +539,6 @@
             </div>
           </div>
 
-          <!-- Q2 -->
           <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-sm font-semibold text-slate-800">
               Q2. 今回の状況において、暗黙の手順省略やミスがあっても正直に話すことができましたか？
@@ -488,7 +566,6 @@
             </div>
           </div>
 
-          <!-- Q3 -->
           <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-sm font-semibold text-slate-800">
               Q3. 回答時、自身の保身（言い訳）よりも、組織の改善のための発言を優先しましたか？
@@ -555,7 +632,7 @@
           データが正常に記録されました。担当教員の指示があるまで、ブラウザを閉じずにこのまま静かにお待ちください。
         </div>
 
-        <!-- 緊急時バックアップCSV保存（通常は非表示、3回クリックで開く） -->
+        <!-- 緊急時バックアップCSV保存 -->
         <div class="text-right pt-6">
           <button id="btnEmergencyTrigger" class="text-[10px] text-slate-300 hover:text-slate-400 font-mono">SysRef:OK</button>
           <div id="emergencyArea" class="hidden mt-2">
@@ -578,12 +655,13 @@
        ========================================== -->
   <script>
     // ==================== 設定 & 状態管理 ====================
-    // ↓ デプロイ済みのGoogle Apps Script ウェブアプリURL
     const GAS_ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwNPV0dEHjJPujLavXNXjpOdMP0gKGvTwy0_azVFuJxK85r9FKRh7S6m-8XrwoG_g_B/exec"; 
 
     let state = {
       participantId: "P001",
       condition: "A",
+      teamName: "検査第3班",
+      peerIds: ["P-382", "P-519", "P-104"],
       taskTimeSpentSec: 0,
       taskTotalAnswered: 0,
       taskToolSkipCount: 0,
@@ -607,7 +685,7 @@
       { order: "CD-9304", actual: "CD-9384", isMatch: false, note: "【練習2】ツールで差分を確認し「差し戻し」を押してください。" }
     ];
 
-    // 本番データセット（50問・6〜8桁）
+    // 本番データセット（50問）
     const taskDataSet = [
       { id: 1, order: "AB-1024", actual: "AB-1024", isTrap: false, isMatch: true },
       { id: 2, order: "CD-3051", actual: "CD-3051", isTrap: false, isMatch: true },
@@ -620,7 +698,6 @@
       { id: 9, order: "QR-5510", actual: "QR-5510", isTrap: false, isMatch: true },
       { id: 10, order: "ST-7132", actual: "ST-7132", isTrap: false, isMatch: true },
       { id: 11, order: "UV-9014", actual: "UV-9014", isTrap: false, isMatch: true },
-      // トラップ1: 数字転倒エラー
       { id: 12, order: "AB-4821", actual: "AB-4281", isTrap: true, isMatch: false },
       { id: 13, order: "WX-6120", actual: "WX-6120", isTrap: false, isMatch: true },
       { id: 14, order: "YZ-3391", actual: "YZ-3391", isTrap: false, isMatch: true },
@@ -633,7 +710,6 @@
       { id: 21, order: "GI-4217", actual: "GI-4217", isTrap: false, isMatch: true },
       { id: 22, order: "HJ-6839", actual: "HJ-6839", isTrap: false, isMatch: true },
       { id: 23, order: "IK-1590", actual: "IK-1590", isTrap: false, isMatch: true },
-      // トラップ2: 酷似数字 (8 vs 3)
       { id: 24, order: "KR-3891", actual: "KR-3391", isTrap: true, isMatch: false },
       { id: 25, order: "JL-7402", actual: "JL-7402", isTrap: false, isMatch: true },
       { id: 26, order: "KM-2815", actual: "KM-2815", isTrap: false, isMatch: true },
@@ -645,7 +721,6 @@
       { id: 32, order: "QS-1483", actual: "QS-1483", isTrap: false, isMatch: true },
       { id: 33, order: "RT-9924", actual: "RT-9924", isTrap: false, isMatch: true },
       { id: 34, order: "SU-4317", actual: "SU-4317", isTrap: false, isMatch: true },
-      // トラップ3: 数字転倒
       { id: 35, order: "CD-6521", actual: "CD-6251", isTrap: true, isMatch: false },
       { id: 36, order: "TV-8740", actual: "TV-8740", isTrap: false, isMatch: true },
       { id: 37, order: "UW-2196", actual: "UW-2196", isTrap: false, isMatch: true },
@@ -653,20 +728,17 @@
       { id: 39, order: "WY-9075", actual: "WY-9075", isTrap: false, isMatch: true },
       { id: 40, order: "XZ-3418", actual: "XZ-3418", isTrap: false, isMatch: true },
       { id: 41, order: "YA-7802", actual: "YA-7802", isTrap: false, isMatch: true },
-      // トラップ4: 酷似数字 (6 vs 5)
       { id: 42, order: "TY-7164", actual: "TY-7154", isTrap: true, isMatch: false },
       { id: 43, order: "ZB-1249", actual: "ZB-1249", isTrap: false, isMatch: true },
       { id: 44, order: "AC-6780", actual: "AC-6780", isTrap: false, isMatch: true },
       { id: 45, order: "BD-2315", actual: "BD-2315", isTrap: false, isMatch: true },
       { id: 46, order: "CE-8904", actual: "CE-8904", isTrap: false, isMatch: true },
       { id: 47, order: "DF-4561", actual: "DF-4561", isTrap: false, isMatch: true },
-      // トラップ5: 1文字違い
       { id: 48, order: "GH-8812", actual: "GH-8312", isTrap: true, isMatch: false },
       { id: 49, order: "EG-9123", actual: "EG-9123", isTrap: false, isMatch: true },
       { id: 50, order: "FH-5678", actual: "FH-5678", isTrap: false, isMatch: true }
     ];
 
-    // 画面切り替え共通関数
     function showScreen(screenId) {
       const screens = [
         'screenSetup', 'screenTutorial', 'screenReady', 
@@ -684,7 +756,6 @@
       if (info) info.textContent = `ID: ${state.participantId} | Condition: ${state.condition}`;
     }
 
-    // 安全にイベントリスナーを追加するヘルパー関数
     function bindEvent(id, eventType, handler) {
       const el = document.getElementById(id);
       if (el) {
@@ -692,8 +763,6 @@
       }
     }
 
-    // ==================== プログレスバーアニメーション ====================
-    // 指定時間(ms)かけてwidthを0%から100%まで等速で滑らかに進める関数
     function animateProgressBar(progressBarEl, durationMs, onComplete) {
       progressBarEl.style.transition = 'none';
       progressBarEl.style.width = '0%';
@@ -771,6 +840,16 @@
 
     // ==================== 初期化・イベント設定 ====================
     window.addEventListener('DOMContentLoaded', () => {
+      // 1. ダミーチーム情報のランダム生成（横目対策）
+      const randomTeamNum = Math.floor(2 + Math.random() * 7); // 検査第2班〜第8班
+      state.teamName = `検査第${randomTeamNum}班`;
+      state.peerIds = [
+        "P-" + Math.floor(100 + Math.random() * 400),
+        "P-" + Math.floor(500 + Math.random() * 300),
+        "P-" + Math.floor(800 + Math.random() * 190)
+      ];
+
+      // 2. 条件A〜Dの均等割り振りと手動切り替え制御
       const conditions = ['A', 'B', 'C', 'D'];
       const params = new URLSearchParams(window.location.search);
       let assignedCondition = '';
@@ -808,7 +887,7 @@
         btn.classList.add('opacity-60');
         status.textContent = '🔊 ルールを読み上げ中...';
 
-        const ruleSpeech = "作業規定およびタスクルールをご案内します。あなたは遠隔の参加者と4人1組の検査班に割り当てられています。制限時間は3分間、全50問です。チーム4名全員が時間内にミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。確実な照合のため、規定の詳細照合ツールを用いて検査を行ってください。";
+        const ruleSpeech = "作業規定およびタスクルールをご案内します。あなたは遠隔の参加者と4人1組の検査班に割り当てられます。制限時間は3分間、全50問です。チーム4名全員が時間内にミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。確実な照合のため、規定の詳細照合ツールを用いて検査を行ってください。";
         speakText(ruleSpeech, () => {
           status.textContent = '✓ 読み上げ完了：チュートリアルへ進んでください。';
           status.classList.add('text-emerald-600', 'font-bold');
@@ -828,8 +907,15 @@
         startTutorial();
       });
 
+      // チュートリアル終了ボタン（マッチング完了カード内のボタン）
       bindEvent('btnFinishTutorial', 'click', () => {
+        // スタンバイ画面のチーム表示を更新
         document.getElementById('readyPid').textContent = state.participantId;
+        document.getElementById('readyTeamTitle').textContent = `照合検査チーム：${state.teamName}`;
+        document.getElementById('readyPeer1').textContent = state.peerIds[0];
+        document.getElementById('readyPeer2').textContent = state.peerIds[1];
+        document.getElementById('readyPeer3').textContent = state.peerIds[2];
+        document.getElementById('taskHeaderTeamBadge').textContent = `${state.teamName} [4名同期中]`;
         showScreen('screenReady');
       });
 
@@ -891,6 +977,10 @@
     function startTutorial() {
       state.currentTutIndex = 0;
       state.tutToolUsed = false;
+      document.getElementById('tutMatchingCount').textContent = "学内待機者を探索中... (1/4名接続)";
+      document.getElementById('tutEndArea').classList.add('hidden');
+      document.getElementById('matchingLoadingBox').classList.remove('hidden');
+      document.getElementById('matchingCompleteBox').classList.add('hidden');
       showScreen('screenTutorial');
       loadTutorialQuestion();
     }
@@ -923,8 +1013,6 @@
       tutBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
       const pBar = document.getElementById('tutToolProgress');
-      
-      // 2.5秒かけて滑らかにバーを進める
       animateProgressBar(pBar, 2500, () => {
         state.tutToolUsed = true;
         document.getElementById('tutToolStatus').textContent = '照合完了';
@@ -949,9 +1037,41 @@
     function handleTutorialAnswer(userDecision) {
       state.currentTutIndex++;
       if (state.currentTutIndex < tutorialTasks.length) {
+        // 1問目完了時：マッチング進行度を上げる演出
+        document.getElementById('tutMatchingCount').textContent = "学内待機者を検知: 3/4名接続中...";
         loadTutorialQuestion();
       } else {
+        // 2問目完了時：マッチング完了シーケンスを開始
+        document.getElementById('btnTutMatch').disabled = true;
+        document.getElementById('btnTutMismatch').disabled = true;
         document.getElementById('tutEndArea').classList.remove('hidden');
+
+        // マッチングローディングバーのアニメーション
+        const fillBar = document.getElementById('matchProgressFill');
+        const detailTxt = document.getElementById('matchProgressDetail');
+        fillBar.style.width = '60%';
+        detailTxt.textContent = "待機者3名を検証中... 応答シグナル受信";
+
+        setTimeout(() => {
+          fillBar.style.width = '100%';
+          detailTxt.textContent = "全4名の接続確立・セッション同期完了";
+        }, 800);
+
+        // 1.5秒後に確定カードを表示
+        setTimeout(() => {
+          document.getElementById('matchingLoadingBox').classList.add('hidden');
+          const completeBox = document.getElementById('matchingCompleteBox');
+          completeBox.classList.remove('hidden');
+
+          // チーム情報と各メンバーIDの反映
+          document.getElementById('tutAssignedTeamBadge').textContent = `${state.teamName}（4名編成）`;
+          document.getElementById('cardYouId').textContent = state.participantId;
+          document.getElementById('cardPeer1Id').textContent = state.peerIds[0];
+          document.getElementById('cardPeer2Id').textContent = state.peerIds[1];
+          document.getElementById('cardPeer3Id').textContent = state.peerIds[2];
+          document.getElementById('tutMatchingCount').textContent = `✓ チーム編成完了: ${state.teamName} [4/4名]`;
+          document.getElementById('tutMatchingCount').className = "font-mono font-bold text-emerald-600";
+        }, 1600);
       }
     }
 
@@ -1032,8 +1152,6 @@
       toolBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
       const pBar = document.getElementById('toolProgress');
-      
-      // 2.5秒かけて滑らかにバーを進める
       animateProgressBar(pBar, 2500, () => {
         document.getElementById('toolStatus').textContent = '照合完了';
         const trial = taskDataSet[state.currentTrialIndex];
