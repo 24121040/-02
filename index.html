@@ -155,7 +155,7 @@
             <span id="tutToolStatus" class="text-xs font-mono text-slate-500">待機中</span>
           </div>
           <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-            <div id="tutToolProgress" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+            <div id="tutToolProgress" class="bg-blue-600 h-full w-0"></div>
           </div>
           <div class="flex justify-between items-center pt-1">
             <button id="btnTutTool" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
@@ -254,7 +254,7 @@
             <span id="toolStatus" class="text-xs font-mono text-slate-500">待機中</span>
           </div>
           <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-            <div id="toolProgress" class="bg-blue-600 h-full w-0 transition-all duration-300"></div>
+            <div id="toolProgress" class="bg-blue-600 h-full w-0"></div>
           </div>
           <div class="flex justify-between items-center pt-1">
             <button id="btnTool" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
@@ -578,7 +578,7 @@
        ========================================== -->
   <script>
     // ==================== 設定 & 状態管理 ====================
-    // ↓ ここにデプロイしたGoogle Apps ScriptのウェブアプリURLを貼り付けます
+    // ↓ デプロイ済みのGoogle Apps Script ウェブアプリURL
     const GAS_ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwNPV0dEHjJPujLavXNXjpOdMP0gKGvTwy0_azVFuJxK85r9FKRh7S6m-8XrwoG_g_B/exec"; 
 
     let state = {
@@ -692,10 +692,30 @@
       }
     }
 
+    // ==================== プログレスバーアニメーション ====================
+    // 指定時間(ms)かけてwidthを0%から100%まで等速で滑らかに進める関数
+    function animateProgressBar(progressBarEl, durationMs, onComplete) {
+      progressBarEl.style.transition = 'none';
+      progressBarEl.style.width = '0%';
+      const startTime = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / durationMs, 1);
+        progressBarEl.style.width = `${progress * 100}%`;
+
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        } else {
+          if (onComplete) onComplete();
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
     // ==================== スマホ対応 音声エンジン制御 ====================
     let isAudioUnlocked = false;
 
-    // 初回タップでスマホの音声再生制限を解除
     function unlockAudioOnFirstTouch() {
       if (isAudioUnlocked || !window.speechSynthesis) return;
       const dummyUttr = new SpeechSynthesisUtterance("");
@@ -708,7 +728,6 @@
     document.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true });
     document.addEventListener('click', unlockAudioOnFirstTouch, { once: true });
 
-    // スマホ最適化版 音声読み上げ関数
     function speakText(text, onEndCallback) {
       if (!window.speechSynthesis) {
         if (onEndCallback) onEndCallback();
@@ -752,17 +771,14 @@
 
     // ==================== 初期化・イベント設定 ====================
     window.addEventListener('DOMContentLoaded', () => {
-      // 1. 条件A〜Dの均等割り振りと手動切り替え制御
       const conditions = ['A', 'B', 'C', 'D'];
       const params = new URLSearchParams(window.location.search);
       let assignedCondition = '';
 
       if (params.get('cond') && conditions.includes(params.get('cond').toUpperCase())) {
-        // URLパラメータ指定がある場合最優先
         assignedCondition = params.get('cond').toUpperCase();
         document.getElementById('condAssignBadge').textContent = `URLパラメータ指定: 条件${assignedCondition}`;
       } else {
-        // アクセス時にランダム均等割り振り（大講義室で人数が均等化）
         const randIndex = Math.floor(Math.random() * 4);
         assignedCondition = conditions[randIndex];
         document.getElementById('condAssignBadge').textContent = `自動割り当て中: 条件${assignedCondition}`;
@@ -771,7 +787,6 @@
       const assignedRadio = document.querySelector(`input[name="expCondition"][value="${assignedCondition}"]`);
       if (assignedRadio) assignedRadio.checked = true;
 
-      // 手動でラジオボタンを変更した時のバッジ更新
       document.querySelectorAll('input[name="expCondition"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
           document.getElementById('condAssignBadge').textContent = `手動変更済み: 条件${e.target.value}`;
@@ -779,16 +794,13 @@
         });
       });
 
-      // 2. 被験者IDの初期化
       if (params.get('pid')) {
         document.getElementById('inputPid').value = params.get('pid');
       } else {
-        // 重複防止のため初期値としてランダムな4桁IDを提案
         const randPid = "P" + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('inputPid').value = randPid;
       }
 
-      // ルール音声読み上げボタン
       bindEvent('btnReadRules', 'click', () => {
         const btn = document.getElementById('btnReadRules');
         const status = document.getElementById('ruleSpeechStatus');
@@ -809,7 +821,6 @@
         });
       });
 
-      // チュートリアルへ進むボタン
       bindEvent('btnToTutorial', 'click', () => {
         state.participantId = document.getElementById('inputPid').value.trim() || 'P001';
         const checkedCond = document.querySelector('input[name="expCondition"]:checked');
@@ -817,37 +828,30 @@
         startTutorial();
       });
 
-      // チュートリアル終了ボタン
       bindEvent('btnFinishTutorial', 'click', () => {
         document.getElementById('readyPid').textContent = state.participantId;
         showScreen('screenReady');
       });
 
-      // スタンバイ画面：チュートリアル再開ボタン
       bindEvent('btnRestartTutorial', 'click', () => {
         startTutorial();
       });
 
-      // スタンバイ画面：本番タスク開始ボタン
       bindEvent('btnStartMainTask', 'click', () => {
         startMainTask();
       });
 
-      // チュートリアル内ツールボタン
       bindEvent('btnTutTool', 'click', runTutorialTool);
       bindEvent('btnTutMatch', 'click', () => handleTutorialAnswer(true));
       bindEvent('btnTutMismatch', 'click', () => handleTutorialAnswer(false));
 
-      // 本番タスク内ボタン
       bindEvent('btnTool', 'click', runMainTool);
       bindEvent('btnMatch', 'click', () => handleTaskAnswer(true));
       bindEvent('btnMismatch', 'click', () => handleTaskAnswer(false));
       bindEvent('btnResumeAfterWarning', 'click', resumeTaskAfterWarning);
 
-      // インシデント通達からチャットへ
       bindEvent('btnToChat', 'click', startChatSession);
 
-      // チャット入力バリデーション & 送信
       const inputChat = document.getElementById('inputChat');
       if (inputChat) {
         inputChat.addEventListener('input', (e) => {
@@ -860,13 +864,11 @@
       }
       bindEvent('btnSendChat', 'click', sendChatMessage);
 
-      // アンケート送信
       const formSurvey = document.getElementById('formSurvey');
       if (formSurvey) {
         formSurvey.addEventListener('submit', handleSurveySubmit);
       }
 
-      // 管理者用隠しボタン（3回タップでCSV手動保存ボタン出現）
       let clickCount = 0;
       bindEvent('btnEmergencyTrigger', 'click', () => {
         clickCount++;
@@ -877,7 +879,6 @@
       });
       bindEvent('btnEmergencySave', 'click', exportDataAsCSV);
 
-      // 離脱防止ガード
       window.addEventListener('beforeunload', (e) => {
         if (state.currentTrialIndex > 0 && state.currentTrialIndex < 50) {
           e.preventDefault();
@@ -901,11 +902,9 @@
       document.getElementById('tutActualCode').textContent = q.actual;
       document.getElementById('tutGuideText').textContent = q.note;
 
-      // 枠色のリセット（通常グレー）
       const tutBox = document.getElementById('tutToolContainer');
       tutBox.className = "bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
 
-      // 状態リセット
       state.tutToolUsed = false;
       document.getElementById('tutToolStatus').textContent = '待機中';
       document.getElementById('tutToolResult').textContent = '';
@@ -919,14 +918,14 @@
       const btn = document.getElementById('btnTutTool');
       btn.disabled = true;
       document.getElementById('tutToolStatus').textContent = '照合解析中... (2.5秒)';
-      const pBar = document.getElementById('tutToolProgress');
-      pBar.style.width = '100%';
 
-      // 枠色を「解析中（青）」に変化
       const tutBox = document.getElementById('tutToolContainer');
       tutBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
-      setTimeout(() => {
+      const pBar = document.getElementById('tutToolProgress');
+      
+      // 2.5秒かけて滑らかにバーを進める
+      animateProgressBar(pBar, 2500, () => {
         state.tutToolUsed = true;
         document.getElementById('tutToolStatus').textContent = '照合完了';
         const q = tutorialTasks[state.currentTutIndex];
@@ -935,18 +934,16 @@
         if (q.isMatch) {
           res.textContent = '【判定：完全一致 (安全)】';
           res.className = 'text-xs font-bold text-emerald-600';
-          // 枠色を「完全一致（鮮やかな緑）」に変化
           tutBox.className = "bg-emerald-50 p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
           res.textContent = '【判定：不一致検知 (差分あり)】';
           res.className = 'text-xs font-bold text-rose-600';
-          // 枠色を「不一致（警告の赤）」に変化
           tutBox.className = "bg-rose-50 p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
 
         document.getElementById('btnTutMatch').disabled = false;
         document.getElementById('btnTutMismatch').disabled = false;
-      }, 2500);
+      });
     }
 
     function handleTutorialAnswer(userDecision) {
@@ -972,7 +969,6 @@
       showScreen('screenTask');
       loadTaskTrial();
 
-      // 180秒タイマー開始
       state.timerInterval = setInterval(() => {
         state.timeLeft--;
         state.taskTimeSpentSec++;
@@ -1009,11 +1005,9 @@
       document.getElementById('orderLoc').textContent = trial.id % 2 === 0 ? "常温" : "冷蔵";
       document.getElementById('actualLoc').textContent = trial.id % 2 === 0 ? "常温" : "冷蔵";
 
-      // ツール枠色のリセット（通常グレー）
       const toolBox = document.getElementById('mainToolContainer');
       toolBox.className = "bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
 
-      // ツール状態のリセット
       state.isToolActive = false;
       document.getElementById('toolStatus').textContent = '待機中';
       document.getElementById('toolResult').textContent = '';
@@ -1033,13 +1027,14 @@
       document.getElementById('btnMismatch').disabled = true;
 
       document.getElementById('toolStatus').textContent = '照合解析中... (2.5秒)';
-      document.getElementById('toolProgress').style.width = '100%';
 
-      // 枠色を「解析中（青）」に変化
       const toolBox = document.getElementById('mainToolContainer');
       toolBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
-      setTimeout(() => {
+      const pBar = document.getElementById('toolProgress');
+      
+      // 2.5秒かけて滑らかにバーを進める
+      animateProgressBar(pBar, 2500, () => {
         document.getElementById('toolStatus').textContent = '照合完了';
         const trial = taskDataSet[state.currentTrialIndex];
         const res = document.getElementById('toolResult');
@@ -1047,18 +1042,16 @@
         if (trial.isMatch) {
           res.textContent = '【判定：完全一致 (安全)】';
           res.className = 'text-xs font-bold text-emerald-600';
-          // 枠色を「完全一致（鮮やかな緑）」に変化
           toolBox.className = "bg-emerald-50 p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
           res.textContent = '【判定：差異検知 (不一致)】';
           res.className = 'text-xs font-bold text-rose-600';
-          // 枠色を「差異検知（警告の赤）」に変化
           toolBox.className = "bg-rose-50 p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
 
         document.getElementById('btnMatch').disabled = false;
         document.getElementById('btnMismatch').disabled = false;
-      }, 2500);
+      });
     }
 
     function handleTaskAnswer(userDecisionIsMatch) {
@@ -1069,7 +1062,6 @@
       if (!state.isToolActive) state.taskToolSkipCount++;
       if (trial.isTrap && !isCorrect) state.taskTrapErrors++;
 
-      // ログ保存
       state.trialLogs.push({
         trialNumber: trial.id,
         itemCodeOrder: trial.order,
@@ -1084,7 +1076,6 @@
       state.currentTrialIndex++;
       state.taskTotalAnswered = state.currentTrialIndex;
 
-      // 10問ごとのペース警告モーダル
       if (state.currentTrialIndex % 10 === 0 && state.currentTrialIndex < 50) {
         clearInterval(state.timerInterval);
         document.getElementById('paceWarningModal').classList.remove('hidden');
@@ -1163,7 +1154,6 @@
         startBlinking();
       } else if (state.condition === 'B') {
         svg.classList.remove('hidden');
-        // 静止画：アニメーションなし
       } else if (state.condition === 'C') {
         canvas.classList.remove('hidden');
         initAudioVisualizer();
@@ -1195,7 +1185,6 @@
       const qText = chatQuestions[state.chatStep];
       appendChatMessage('airen', qText);
 
-      // 音声読み上げとアバター反応連動
       speakText(qText, () => {
         document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
       });
@@ -1270,7 +1259,6 @@
         return;
       }
 
-      // 条件Aの場合相槌（頷き）
       if (state.condition === 'A') {
         const head = document.getElementById('avatarHead');
         head.classList.add('animate-nod');
@@ -1318,7 +1306,6 @@
         trialLogs: state.trialLogs
       };
 
-      // GASへの安全なPOST送信（mode: 'no-cors' でCORS制約を回避）
       fetch(GAS_ENDPOINT_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -1340,9 +1327,8 @@
       });
     }
 
-    // 緊急用CSVエクスポート機能
     function exportDataAsCSV() {
-      let csv = "\uFEFF"; // UTF-8 BOM
+      let csv = "\uFEFF";
       csv += "=== PARTICIPANT SUMMARY ===\n";
       csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Survey_Q1,Survey_Q2,Survey_Q3\n";
       csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${state.chatResponses.q1.replace(/"/g, '""')}","${state.chatResponses.q2.replace(/"/g, '""')}","${state.chatResponses.q3.replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3}\n\n`;
