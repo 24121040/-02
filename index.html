@@ -53,7 +53,7 @@
     <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
 
       <!-- ==========================================
-           画面1: 実験設定画面 (ブラインド仕様)
+           画面1: 実験設定画面 (自動均等割り振り & 手動切替)
            ========================================== -->
       <section id="screenSetup" class="p-8 space-y-6">
         <div class="border-b border-slate-200 pb-4 text-center">
@@ -65,28 +65,33 @@
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">被験者ID (Participant ID)</label>
             <input type="text" id="inputPid" value="P001" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-base">
+            <p class="text-[11px] text-slate-400 mt-1">※指示がある場合は学籍番号の下4桁などを入力してください。</p>
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">割り当て実験条件</label>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-sm font-semibold text-slate-700">割り当て実験条件</label>
+              <span id="condAssignBadge" class="text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded">自動均等割り当て中</span>
+            </div>
             <div class="grid grid-cols-2 gap-3">
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-                <input type="radio" name="expCondition" value="A" checked class="text-blue-600 focus:ring-blue-500">
+              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                <input type="radio" name="expCondition" value="A" class="text-blue-600 focus:ring-blue-500">
                 <span class="ml-2 font-medium text-slate-700">条件 A</span>
               </label>
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="B" class="text-blue-600 focus:ring-blue-500">
                 <span class="ml-2 font-medium text-slate-700">条件 B</span>
               </label>
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="C" class="text-blue-600 focus:ring-blue-500">
                 <span class="ml-2 font-medium text-slate-700">条件 C</span>
               </label>
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
+              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="D" class="text-blue-600 focus:ring-blue-500">
                 <span class="ml-2 font-medium text-slate-700">条件 D</span>
               </label>
             </div>
+            <p class="text-[11px] text-slate-400 mt-1">※アクセス時に均等に自動選択されます。検証時は手動で選択を変更できます。</p>
           </div>
 
           <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1">
@@ -143,8 +148,8 @@
           </div>
         </div>
 
-        <!-- 詳細照合ツール枠 -->
-        <div class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2">
+        <!-- 詳細照合ツール枠（枠色変化対応） -->
+        <div id="tutToolContainer" class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
             <span id="tutToolStatus" class="text-xs font-mono text-slate-500">待機中</span>
@@ -242,8 +247,8 @@
           </div>
         </div>
 
-        <!-- 詳細照合ツール枠 -->
-        <div class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2">
+        <!-- 詳細照合ツール枠（枠色変化対応） -->
+        <div id="mainToolContainer" class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
             <span id="toolStatus" class="text-xs font-mono text-slate-500">待機中</span>
@@ -574,7 +579,7 @@
   <script>
     // ==================== 設定 & 状態管理 ====================
     // ↓ ここにデプロイしたGoogle Apps ScriptのウェブアプリURLを貼り付けます
-    const GAS_ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwNPV0dEHjJPujLavXNXjpOdMP0gKGvTwy0_azVFuJxK85r9FKRh7S6m-8XrwoG_g_B/exec"; 
+    const GAS_ENDPOINT_URL = "ここにURLを貼り付け"; 
 
     let state = {
       participantId: "P001",
@@ -687,7 +692,22 @@
       }
     }
 
-   
+    // ==================== スマホ対応 音声エンジン制御 ====================
+    let isAudioUnlocked = false;
+
+    // 初回タップでスマホの音声再生制限を解除
+    function unlockAudioOnFirstTouch() {
+      if (isAudioUnlocked || !window.speechSynthesis) return;
+      const dummyUttr = new SpeechSynthesisUtterance("");
+      dummyUttr.volume = 0;
+      window.speechSynthesis.speak(dummyUttr);
+      isAudioUnlocked = true;
+      document.removeEventListener('touchstart', unlockAudioOnFirstTouch);
+      document.removeEventListener('click', unlockAudioOnFirstTouch);
+    }
+    document.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true });
+    document.addEventListener('click', unlockAudioOnFirstTouch, { once: true });
+
     // スマホ最適化版 音声読み上げ関数
     function speakText(text, onEndCallback) {
       if (!window.speechSynthesis) {
@@ -732,12 +752,40 @@
 
     // ==================== 初期化・イベント設定 ====================
     window.addEventListener('DOMContentLoaded', () => {
-      // URLパラメータの自動パース
+      // 1. 条件A〜Dの均等割り振りと手動切り替え制御
+      const conditions = ['A', 'B', 'C', 'D'];
       const params = new URLSearchParams(window.location.search);
-      if (params.get('pid')) document.getElementById('inputPid').value = params.get('pid');
-      if (params.get('cond')) {
-        const radio = document.querySelector(`input[name="expCondition"][value="${params.get('cond').toUpperCase()}"]`);
-        if (radio) radio.checked = true;
+      let assignedCondition = '';
+
+      if (params.get('cond') && conditions.includes(params.get('cond').toUpperCase())) {
+        // URLパラメータ指定がある場合最優先
+        assignedCondition = params.get('cond').toUpperCase();
+        document.getElementById('condAssignBadge').textContent = `URLパラメータ指定: 条件${assignedCondition}`;
+      } else {
+        // アクセス時にランダム均等割り振り（大講義室で人数が均等化）
+        const randIndex = Math.floor(Math.random() * 4);
+        assignedCondition = conditions[randIndex];
+        document.getElementById('condAssignBadge').textContent = `自動割り当て中: 条件${assignedCondition}`;
+      }
+
+      const assignedRadio = document.querySelector(`input[name="expCondition"][value="${assignedCondition}"]`);
+      if (assignedRadio) assignedRadio.checked = true;
+
+      // 手動でラジオボタンを変更した時のバッジ更新
+      document.querySelectorAll('input[name="expCondition"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          document.getElementById('condAssignBadge').textContent = `手動変更済み: 条件${e.target.value}`;
+          document.getElementById('condAssignBadge').className = "text-[11px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded";
+        });
+      });
+
+      // 2. 被験者IDの初期化
+      if (params.get('pid')) {
+        document.getElementById('inputPid').value = params.get('pid');
+      } else {
+        // 重複防止のため初期値としてランダムな4桁IDを提案
+        const randPid = "P" + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('inputPid').value = randPid;
       }
 
       // ルール音声読み上げボタン
@@ -853,7 +901,11 @@
       document.getElementById('tutActualCode').textContent = q.actual;
       document.getElementById('tutGuideText').textContent = q.note;
 
-      // リセット
+      // 枠色のリセット（通常グレー）
+      const tutBox = document.getElementById('tutToolContainer');
+      tutBox.className = "bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
+
+      // 状態リセット
       state.tutToolUsed = false;
       document.getElementById('tutToolStatus').textContent = '待機中';
       document.getElementById('tutToolResult').textContent = '';
@@ -870,18 +922,28 @@
       const pBar = document.getElementById('tutToolProgress');
       pBar.style.width = '100%';
 
+      // 枠色を「解析中（青）」に変化
+      const tutBox = document.getElementById('tutToolContainer');
+      tutBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
+
       setTimeout(() => {
         state.tutToolUsed = true;
         document.getElementById('tutToolStatus').textContent = '照合完了';
         const q = tutorialTasks[state.currentTutIndex];
         const res = document.getElementById('tutToolResult');
+
         if (q.isMatch) {
           res.textContent = '【判定：完全一致 (安全)】';
           res.className = 'text-xs font-bold text-emerald-600';
+          // 枠色を「完全一致（鮮やかな緑）」に変化
+          tutBox.className = "bg-emerald-50 p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
           res.textContent = '【判定：不一致検知 (差分あり)】';
           res.className = 'text-xs font-bold text-rose-600';
+          // 枠色を「不一致（警告の赤）」に変化
+          tutBox.className = "bg-rose-50 p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
+
         document.getElementById('btnTutMatch').disabled = false;
         document.getElementById('btnTutMismatch').disabled = false;
       }, 2500);
@@ -947,6 +1009,10 @@
       document.getElementById('orderLoc').textContent = trial.id % 2 === 0 ? "常温" : "冷蔵";
       document.getElementById('actualLoc').textContent = trial.id % 2 === 0 ? "常温" : "冷蔵";
 
+      // ツール枠色のリセット（通常グレー）
+      const toolBox = document.getElementById('mainToolContainer');
+      toolBox.className = "bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
+
       // ツール状態のリセット
       state.isToolActive = false;
       document.getElementById('toolStatus').textContent = '待機中';
@@ -969,17 +1035,27 @@
       document.getElementById('toolStatus').textContent = '照合解析中... (2.5秒)';
       document.getElementById('toolProgress').style.width = '100%';
 
+      // 枠色を「解析中（青）」に変化
+      const toolBox = document.getElementById('mainToolContainer');
+      toolBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
+
       setTimeout(() => {
         document.getElementById('toolStatus').textContent = '照合完了';
         const trial = taskDataSet[state.currentTrialIndex];
         const res = document.getElementById('toolResult');
+
         if (trial.isMatch) {
-          res.textContent = '【完全一致】';
+          res.textContent = '【判定：完全一致 (安全)】';
           res.className = 'text-xs font-bold text-emerald-600';
+          // 枠色を「完全一致（鮮やかな緑）」に変化
+          toolBox.className = "bg-emerald-50 p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
-          res.textContent = '【差異検知】';
+          res.textContent = '【判定：差異検知 (不一致)】';
           res.className = 'text-xs font-bold text-rose-600';
+          // 枠色を「差異検知（警告の赤）」に変化
+          toolBox.className = "bg-rose-50 p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
+
         document.getElementById('btnMatch').disabled = false;
         document.getElementById('btnMismatch').disabled = false;
       }, 2500);
