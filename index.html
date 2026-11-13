@@ -6,13 +6,13 @@
   <title>業務データ照合システム - AIReN</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* 要件3: スワイプによるページ再読み込み（プルリフレッシュ）やバウンスを防止 */
+    /* スワイプによるページ再読み込み（プルリフレッシュ）やバウンスを防止 */
     html, body {
       overscroll-behavior-y: none;
       touch-action: pan-x pan-y;
       -webkit-tap-highlight-color: transparent;
     }
-    /* 要件1: ボタン連打時のダブルタップ拡大を防止 */
+    /* ボタン連打時のダブルタップ拡大を防止 */
     button, label, input, textarea {
       touch-action: manipulation;
     }
@@ -48,7 +48,7 @@
 <body class="bg-slate-100 text-slate-800 font-sans min-h-[100dvh] flex flex-col justify-between selection:bg-blue-200">
 
   <!-- ヘッダーナビゲーション -->
-  <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 flex justify-between items-center shadow-sm shrink-0">
+  <header id="appHeader" class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 flex justify-between items-center shadow-sm shrink-0">
     <div class="flex items-center space-x-2">
       <div class="w-6 h-6 sm:w-7 sm:h-7 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs sm:text-sm tracking-wider shrink-0">QC</div>
       <span class="font-semibold text-slate-700 tracking-tight text-xs sm:text-base truncate">品質管理・データ照合コンソール (AIReN)</span>
@@ -59,7 +59,7 @@
   </header>
 
   <!-- メインコンテンツ領域 -->
-  <main class="flex-grow flex items-center justify-center p-2 sm:p-4">
+  <main id="appMain" class="flex-grow flex items-center justify-center p-2 sm:p-4">
     <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
 
       <!-- ==========================================
@@ -128,7 +128,6 @@
            画面2: チュートリアル画面 (練習2問 ＋ マッチング演出)
            ========================================== -->
       <section id="screenTutorial" class="hidden p-4 sm:p-6 space-y-4">
-        <!-- 上部：マッチング進行中ステータスバー -->
         <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between text-xs shadow-sm">
           <div class="flex items-center space-x-2">
             <span class="relative flex h-2.5 w-2.5 shrink-0">
@@ -153,7 +152,6 @@
           【練習1】まずは規定の「詳細照合ツール」を押してみましょう。2.5秒間の解析完了後、「承認」ボタンが押せるようになります。
         </div>
 
-        <!-- 照合対象比較枠（要件2: 品名コードの改行防止） -->
         <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
           <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
             <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">発注伝票データ</span>
@@ -177,7 +175,6 @@
           </div>
         </div>
 
-        <!-- 詳細照合ツール枠 -->
         <div id="tutToolContainer" class="bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
@@ -194,7 +191,6 @@
           </div>
         </div>
 
-        <!-- 判定ボタン -->
         <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-1">
           <button id="btnTutMismatch" class="py-3.5 sm:py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
             ✕ 不一致（差し戻し）
@@ -204,7 +200,6 @@
           </button>
         </div>
 
-        <!-- チュートリアル終了時のマッチング成立エリア -->
         <div id="tutEndArea" class="hidden pt-3 border-t border-slate-200 space-y-4">
           <div id="matchingLoadingBox" class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-center">
             <div class="flex items-center justify-center space-x-2 text-xs sm:text-sm font-bold text-slate-700">
@@ -269,7 +264,7 @@
       </section>
 
       <!-- ==========================================
-           画面3: 本番開始スタンバイ画面 (要件7・8対応)
+           画面3: 本番開始スタンバイ画面
            ========================================== -->
       <section id="screenReady" class="hidden p-5 sm:p-8 space-y-6 relative">
         <div class="flex justify-end">
@@ -284,7 +279,6 @@
           </div>
           <h2 class="text-xl sm:text-2xl font-bold text-slate-800">本番データ照合タスクのスタンバイ完了</h2>
 
-          <!-- チーム編成ステータスカード -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs text-slate-600 space-y-3">
             <div class="flex justify-between items-center border-b border-slate-200 pb-2">
               <span class="font-bold text-slate-800 text-sm" id="readyTeamTitle">照合検査チーム：検査第3班</span>
@@ -304,12 +298,10 @@
             </div>
           </div>
 
-          <!-- 要件7: 注意文言の変更 -->
           <p class="text-sm text-rose-600 font-bold leading-relaxed">
             ※指示が出たら、下のボタンを押して、スタートしてください。
           </p>
 
-          <!-- 要件8: 開始ボタン文言の変更 -->
           <button id="btnStartMainTask" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition">
             本番タスクを開始する
           </button>
@@ -317,10 +309,9 @@
       </section>
 
       <!-- ==========================================
-           画面4: 本番データ照合タスク画面 (要件2: 改行防止)
+           画面4: 本番データ照合タスク画面
            ========================================== -->
       <section id="screenTask" class="hidden p-4 sm:p-6 space-y-4">
-        <!-- 上部ヘッダー -->
         <div class="flex flex-col items-center justify-center border-b border-slate-200 pb-3 relative">
           <div class="sm:absolute sm:right-0 sm:top-0 mb-1 sm:mb-0 flex items-center space-x-1.5 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded text-xs text-slate-600">
             <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -337,7 +328,6 @@
           </div>
         </div>
 
-        <!-- 照合対象比較枠（要件2: 品名コードを独立行＆whitespace-nowrapで改行完全防止） -->
         <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
           <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
             <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">発注伝票データ</span>
@@ -361,7 +351,6 @@
           </div>
         </div>
 
-        <!-- 詳細照合ツール枠 -->
         <div id="mainToolContainer" class="bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
@@ -378,7 +367,6 @@
           </div>
         </div>
 
-        <!-- 判定ボタン -->
         <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-1">
           <button id="btnMismatch" class="py-3.5 sm:py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
             ✕ 不一致（差し戻し）
@@ -448,79 +436,84 @@
       </section>
 
       <!-- ==========================================
-           画面6: AIReNヒアリング画面 (要件4: 上半分アバター常時固定表示)
+           画面6: AIReNヒアリング画面
+           ★ 画面上半分（上から260px以内）に「①アバター」「②質問文」「③入力欄」を上詰めで配置
+           ★ 下半分にキーボードが出ても、アバターと入力中の文字の両方が100%確実に見える構造
            ========================================== -->
-      <section id="screenChat" class="hidden flex flex-col h-[calc(100dvh-64px)] max-h-[760px] p-2.5 sm:p-5 gap-2.5">
-        
-        <!-- 上部（常時固定表示）: アバター枠 -->
-        <div class="shrink-0 bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-4 flex flex-col items-center justify-center shadow-sm">
-          <div class="w-full flex justify-between items-center px-2 mb-1">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">品質管理AI「AIReN」</span>
-            <span id="avatarStatusText" class="text-[11px] font-medium text-slate-500 font-mono">● 待機中</span>
-          </div>
+      <section id="screenChat" class="hidden fixed inset-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
+        <div class="w-full max-w-xl mx-auto flex flex-col justify-start p-2 sm:p-4 gap-1.5 sm:gap-2.5">
           
-          <div id="avatarContainer" class="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative">
-            <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
-              <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
-              <g id="avatarBody">
-                <path d="M 40 190 Q 100 130 160 190 Z" fill="#334155"/>
-                <polygon points="100,140 85,190 115,190" fill="#ffffff"/>
-                <polygon points="100,150 95,190 105,190" fill="#2563eb"/>
-              </g>
-              <g id="avatarHead" class="origin-bottom">
-                <ellipse cx="100" cy="95" rx="42" ry="48" fill="#fde047" opacity="0.15"/>
-                <ellipse cx="100" cy="95" rx="38" ry="44" fill="#fed7aa"/>
-                <path d="M 62 85 Q 100 45 138 85 Q 140 60 100 55 Q 60 60 62 85 Z" fill="#1e293b"/>
-                <line x1="78" y1="78" x2="92" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="122" y1="78" x2="108" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
-                <g id="leftEye">
-                  <circle cx="85" cy="90" r="4.5" fill="#1e293b"/>
-                  <circle cx="86" cy="88.5" r="1.5" fill="#ffffff"/>
+          <!-- ① 最上部固定: アバター枠（ラベルを左右上角に配置して高さを節約） -->
+          <div id="avatarBoxWrapper" class="shrink-0 bg-white border-2 border-slate-200 rounded-xl px-3 py-1.5 flex items-center justify-center relative shadow-sm transition-all duration-150">
+            <span class="absolute left-3 top-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">品質管理AI「AIReN」</span>
+            <span id="avatarStatusText" class="absolute right-3 top-1.5 text-[10px] font-bold text-blue-600 font-mono">● 待機中</span>
+            
+            <div id="avatarContainer" class="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center relative transition-all duration-150 mt-2">
+              <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+                <g id="avatarBody">
+                  <path d="M 40 190 Q 100 130 160 190 Z" fill="#334155"/>
+                  <polygon points="100,140 85,190 115,190" fill="#ffffff"/>
+                  <polygon points="100,150 95,190 105,190" fill="#2563eb"/>
                 </g>
-                <g id="rightEye">
-                  <circle cx="115" cy="90" r="4.5" fill="#1e293b"/>
-                  <circle cx="116" cy="88.5" r="1.5" fill="#ffffff"/>
+                <g id="avatarHead" class="origin-bottom">
+                  <ellipse cx="100" cy="95" rx="42" ry="48" fill="#fde047" opacity="0.15"/>
+                  <ellipse cx="100" cy="95" rx="38" ry="44" fill="#fed7aa"/>
+                  <path d="M 62 85 Q 100 45 138 85 Q 140 60 100 55 Q 60 60 62 85 Z" fill="#1e293b"/>
+                  <line x1="78" y1="78" x2="92" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="122" y1="78" x2="108" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
+                  <g id="leftEye">
+                    <circle cx="85" cy="90" r="4.5" fill="#1e293b"/>
+                    <circle cx="86" cy="88.5" r="1.5" fill="#ffffff"/>
+                  </g>
+                  <g id="rightEye">
+                    <circle cx="115" cy="90" r="4.5" fill="#1e293b"/>
+                    <circle cx="116" cy="88.5" r="1.5" fill="#ffffff"/>
+                  </g>
+                  <path d="M 100 92 L 98 102 L 102 102" stroke="#d97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                  <path id="mouthPath" d="M 90 115 Q 100 118 110 115" stroke="#991b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                 </g>
-                <path d="M 100 92 L 98 102 L 102 102" stroke="#d97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                <path id="mouthPath" d="M 90 115 Q 100 118 110 115" stroke="#991b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-              </g>
-            </svg>
+              </svg>
 
-            <canvas id="audioWaveCanvas" width="140" height="140" class="hidden"></canvas>
+              <canvas id="audioWaveCanvas" width="110" height="110" class="hidden"></canvas>
 
-            <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
-              [AIReN 音声ヒアリング]
+              <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
+                [AIReN 音声ヒアリング]
+              </div>
             </div>
           </div>
+
+          <!-- ② アバターのすぐ下: 質問メッセージ＆回答入力ボックス（上詰め配置でキーボードに絶対隠れない） -->
+          <div class="shrink-0 flex flex-col bg-white border-2 border-blue-200 rounded-xl overflow-hidden shadow-md">
+            
+            <!-- 回答入力欄を上に配置するか、コンパクトなチャット枠の直下に配置 -->
+            <div id="chatMessages" class="max-h-[150px] sm:max-h-[240px] p-2.5 overflow-y-auto space-y-2 bg-slate-50 transition-all duration-150">
+            </div>
+
+            <!-- ③ 自分の入力欄（2行表示・濃い黒文字で今打っている内容がハッキリ見える） -->
+            <div class="bg-white border-t-2 border-slate-200 p-2 sm:p-3 space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-700">✏️ あなたの回答を入力（※15文字以上）</span>
+                <span id="charCount" class="font-mono font-bold text-blue-600">0 / 15 文字</span>
+              </div>
+              <div class="flex gap-2 items-stretch">
+                <textarea id="inputChat" rows="2" placeholder="ここをタップして当時の状況や判断を入力..." class="flex-grow px-3 py-1.5 bg-yellow-50/40 border-2 border-slate-300 rounded-lg text-base font-medium text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none resize-none leading-snug"></textarea>
+                <button id="btnSendChat" class="px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center justify-center shrink-0">
+                  送信
+                </button>
+              </div>
+              <p id="chatValidationMsg" class="text-[11px] text-rose-600 hidden font-bold">
+                ※15文字以上で具体的に入力してください。
+              </p>
+            </div>
+
+          </div>
+
         </div>
-
-        <!-- 下部（チャット履歴スクロール ＆ 入力エリア固定） -->
-        <div class="flex-grow flex flex-col bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-0">
-          <div id="chatMessages" class="flex-grow p-3 sm:p-4 overflow-y-auto space-y-3">
-          </div>
-
-          <div class="shrink-0 bg-white border-t border-slate-200 p-2.5 sm:p-3.5 space-y-1.5">
-            <div class="flex items-center justify-between text-[11px] text-slate-500">
-              <span>回答を入力（※15文字以上）</span>
-              <span id="charCount" class="font-mono text-slate-400">0 / 15 文字</span>
-            </div>
-            <div class="flex gap-2">
-              <!-- 要件1: text-base (16px) でスマホ入力時の自動ズームを防止 -->
-              <textarea id="inputChat" rows="2" placeholder="当時の状況や判断について入力してください..." class="flex-grow p-2 border border-slate-300 rounded-lg text-base focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
-              <button id="btnSendChat" class="px-4 sm:px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center justify-center shrink-0">
-                送信
-              </button>
-            </div>
-            <p id="chatValidationMsg" class="text-[11px] text-rose-600 hidden font-medium">
-              ※状況を正確に把握するため、15文字以上で具体的に入力してください。
-            </p>
-          </div>
-        </div>
-
       </section>
 
       <!-- ==========================================
-           画面7: 事後アンケート画面 (要件9: 6件法・6択に変更)
+           画面7: 事後アンケート画面 (6件法・6択)
            ========================================== -->
       <section id="screenSurvey" class="hidden p-4 sm:p-8 space-y-5">
         <div class="border-b border-slate-200 pb-3 text-center">
@@ -529,7 +522,6 @@
         </div>
 
         <form id="formSurvey" class="space-y-5 max-w-2xl mx-auto">
-          <!-- Q1 -->
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
               Q1. 回答時、AIReNから責められている、または品定めされているような気持ちになりましたか？
@@ -560,7 +552,6 @@
             </div>
           </div>
 
-          <!-- Q2 -->
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
               Q2. 今回の状況において、暗黙の手順省略やミスがあっても正直に話すことができましたか？
@@ -591,7 +582,6 @@
             </div>
           </div>
 
-          <!-- Q3 -->
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
               Q3. 回答時、自身の保身（言い訳）よりも、組織の改善のための発言を優先しましたか？
@@ -675,7 +665,7 @@
     </div>
   </main>
 
-  <footer class="py-1.5 text-center text-[11px] text-slate-400 shrink-0">
+  <footer id="appFooter" class="py-1.5 text-center text-[11px] text-slate-400 shrink-0">
     HCI & Psychology Research Lab © 2026
   </footer>
 
@@ -709,13 +699,11 @@
       speechSynth: window.speechSynthesis || null
     };
 
-    // チュートリアル問題（2問）
     const tutorialTasks = [
       { order: "AB-4821", actual: "AB-4821", isMatch: true, note: "【練習1】詳細照合ツールを使って「承認」を押してください。" },
       { order: "CD-9304", actual: "CD-9384", isMatch: false, note: "【練習2】ツールで差分を確認し「差し戻し」を押してください。" }
     ];
 
-    // 本番データセット（50問）
     const taskDataSet = [
       { id: 1, order: "AB-1024", actual: "AB-1024", isTrap: false, isMatch: true },
       { id: 2, order: "CD-3051", actual: "CD-3051", isTrap: false, isMatch: true },
@@ -769,6 +757,28 @@
       { id: 50, order: "FH-5678", actual: "FH-5678", isTrap: false, isMatch: true }
     ];
 
+    // ★ テキスト入力中（キーボード表示時）にアバターと質問枠をスリム化し、入力欄を確実に画面内へ収める制御
+    function setChatTypingMode(isTyping) {
+      const avatarContainer = document.getElementById('avatarContainer');
+      const chatMessages = document.getElementById('chatMessages');
+      if (!avatarContainer || !chatMessages) return;
+
+      if (isTyping) {
+        // キーボード表示時: アバターを80px(w-20 h-20)、チャット枠を最大70pxにスリム化
+        avatarContainer.className = "w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center relative transition-all duration-150 mt-1";
+        chatMessages.className = "max-h-[68px] sm:max-h-[180px] p-2 overflow-y-auto space-y-1.5 bg-slate-50 transition-all duration-150";
+      } else {
+        // 通常時: アバターを96px(w-24 h-24)、チャット枠を最大150pxに戻す
+        avatarContainer.className = "w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center relative transition-all duration-150 mt-2";
+        chatMessages.className = "max-h-[150px] sm:max-h-[240px] p-2.5 overflow-y-auto space-y-2 bg-slate-50 transition-all duration-150";
+      }
+
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        window.scrollTo(0, 0);
+      }, 50);
+    }
+
     function showScreen(screenId) {
       const screens = [
         'screenSetup', 'screenTutorial', 'screenReady', 
@@ -782,7 +792,13 @@
       const target = document.getElementById(screenId);
       if (target) target.classList.remove('hidden');
 
-      window.scrollTo(0, 0);
+      if (screenId === 'screenChat') {
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
+      } else {
+        document.body.style.overflow = '';
+        window.scrollTo(0, 0);
+      }
 
       const info = document.getElementById('sessionHeaderInfo');
       if (info) info.textContent = `ID: ${state.participantId} | Cond: ${state.condition}`;
@@ -831,7 +847,6 @@
     document.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true });
     document.addEventListener('click', unlockAudioOnFirstTouch, { once: true });
 
-    // 要件5: 音声・文章の長さに完全連動する口パク＆波形制御
     function startTalkingVisuals() {
       stopTalkingVisuals();
       if (state.condition === 'A') {
@@ -858,9 +873,7 @@
       waveActive = false;
     }
 
-    // 音声読み上げ関数（文章の長さに合わせたフォールバック付き）
     function speakText(text, onEndCallback, syncAvatar = false) {
-      // 日本語1文字あたり約165msを標準発話時間として算出
       const estimatedDurationMs = Math.max(1500, text.length * 165);
       const startTime = performance.now();
       let hasEnded = false;
@@ -901,7 +914,6 @@
 
       uttr.onend = () => {
         const elapsed = performance.now() - startTime;
-        // スマホで音声がブロックされ即座にonendが返った場合でも、文章の長さに合わせて口パクを維持する
         if (syncAvatar && elapsed < 500) {
           setTimeout(finishSpeech, estimatedDurationMs - elapsed);
         } else {
@@ -915,7 +927,6 @@
         setTimeout(finishSpeech, remain);
       };
 
-      // 万が一モバイルブラウザでonendイベントが消失した場合の安全タイマー
       setTimeout(finishSpeech, estimatedDurationMs + 2500);
 
       setTimeout(() => {
@@ -925,7 +936,6 @@
 
     // ==================== 初期化・イベント設定 ====================
     window.addEventListener('DOMContentLoaded', () => {
-      // 1. ダミーチーム情報のランダム生成（横目対策）
       const randomTeamNum = Math.floor(2 + Math.random() * 7);
       state.teamName = `検査第${randomTeamNum}班`;
       state.peerIds = [
@@ -934,7 +944,6 @@
         "P-" + Math.floor(800 + Math.random() * 190)
       ];
 
-      // 2. 要件6: サイトを開いた順に A ➔ B ➔ C ➔ D を自動割り当て
       const conditions = ['A', 'B', 'C', 'D'];
       const params = new URLSearchParams(window.location.search);
 
@@ -953,13 +962,11 @@
         const urlCond = params.get('cond').toUpperCase();
         applyConditionRadio(urlCond, `URL指定: 条件${urlCond}`, "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded");
       } else {
-        // 初期フォールバック（ローカル順序）を設定しつつ、GASサーバーから全体のアクセス順を取得
         const localSeq = (parseInt(localStorage.getItem('airen_local_seq') || '0', 10));
         localStorage.setItem('airen_local_seq', (localSeq + 1).toString());
         const fallbackCond = conditions[localSeq % 4];
         applyConditionRadio(fallbackCond, `アクセス順取得中... (仮:条件${fallbackCond})`, "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded");
 
-        // GASのdoGetへアクセスし、全体でのアクセス順（A->B->C->D）を取得
         fetch(`${GAS_ENDPOINT_URL}?action=assign`, { method: 'GET' })
           .then(res => res.json())
           .then(data => {
@@ -982,7 +989,6 @@
           });
       }
 
-      // 手動でラジオボタンを切り替えた場合
       document.querySelectorAll('input[name="expCondition"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
           state.isManualCondition = true;
@@ -1064,6 +1070,16 @@
           if (len >= 15) {
             document.getElementById('chatValidationMsg').classList.add('hidden');
           }
+          // 入力文字が増えた際も自分の打っている末尾が常に見えるようにスクロール
+          inputChat.scrollTop = inputChat.scrollHeight;
+        });
+
+        // 入力欄タップ時（キーボード出現時）にスリムモードへ切り替え
+        inputChat.addEventListener('focus', () => {
+          setChatTypingMode(true);
+        });
+        inputChat.addEventListener('blur', () => {
+          setChatTypingMode(false);
         });
       }
       bindEvent('btnSendChat', 'click', sendChatMessage);
@@ -1368,6 +1384,7 @@
 
     function startChatSession() {
       state.chatStep = 0;
+      document.getElementById('chatMessages').innerHTML = '';
       showScreen('screenChat');
       setupAvatarCondition();
       askNextQuestion();
@@ -1427,7 +1444,6 @@
 
       document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
 
-      // 要件5: syncAvatar=true で呼び出し、発話および文章の長さに合わせて口パク・波形を完全連動
       speakText(qText, () => {
         document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
       }, true);
@@ -1460,8 +1476,8 @@
       msgDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
       const bubble = document.createElement('div');
-      bubble.className = `max-w-[85%] rounded-2xl p-3 text-xs sm:text-sm leading-relaxed shadow-sm ${
-        sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-800'
+      bubble.className = `max-w-[90%] rounded-xl px-3 py-1.5 text-xs sm:text-sm leading-snug shadow-sm ${
+        sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-800 font-medium'
       }`;
       bubble.textContent = text;
       msgDiv.appendChild(bubble);
@@ -1492,6 +1508,9 @@
       input.value = '';
       document.getElementById('charCount').textContent = '0 / 15 文字';
       state.chatStep++;
+
+      // 送信後に一度キーボードを閉じてAIの次の質問と口パクを見やすくする
+      input.blur();
 
       setTimeout(askNextQuestion, 800);
     }
