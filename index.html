@@ -437,20 +437,21 @@
 
       <!-- ==========================================
            画面6: AIReNヒアリング画面
-           ★ 上から順に「①アバター」「②現在の入力テキスト欄」「③チャット履歴」の順で配置
-           ★ テキスト入力時は①アバターと②現在の入力テキスト欄が最上部に直結表示され絶対に隠れない構造
+           ★ アバター枠がスマホ画面の約3分の1（h-[34dvh]）を占める特大レイアウト
+           ★ 上から「①アバター(画面の1/3)」「②現在の入力テキスト欄」「③チャット履歴」の順で配置
            ========================================== -->
       <section id="screenChat" class="hidden fixed inset-x-0 top-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
         <div class="w-full max-w-xl mx-auto flex flex-col justify-start p-1.5 sm:p-3 gap-1.5 h-full">
           
-          <!-- ① 1段目（最上部常時固定）: アバター枠 -->
-          <div id="avatarBoxWrapper" class="shrink-0 bg-white border-2 border-slate-200 rounded-xl px-3 py-1 flex items-center justify-center relative shadow-sm">
-            <span class="absolute left-2.5 top-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">品質管理AI「AIReN」</span>
-            <span id="avatarStatusText" class="absolute right-2.5 top-1 text-[10px] font-bold text-blue-600 font-mono">● 待機中</span>
+          <!-- ① 1段目（スマホ画面の約3分の1を占める特大アバター枠） -->
+          <div id="avatarBoxWrapper" class="h-[34dvh] min-h-[190px] max-h-[300px] shrink-0 bg-white border-2 border-slate-200 rounded-xl p-1.5 flex items-center justify-center relative shadow-sm overflow-hidden">
+            <span class="absolute left-3 top-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider z-10">品質管理AI「AIReN」</span>
+            <span id="avatarStatusText" class="absolute right-3 top-1.5 text-[11px] font-bold text-blue-600 font-mono z-10">● 待機中</span>
             
-            <div id="avatarContainer" class="w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center relative mt-1">
+            <!-- 枠の高さいっぱいに広がるアバターコンテナ -->
+            <div id="avatarContainer" class="h-full aspect-square max-h-[260px] flex items-center justify-center relative pt-3">
               <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+                <circle cx="100" cy="100" r="92" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
                 <g id="avatarBody">
                   <path d="M 40 190 Q 100 130 160 190 Z" fill="#334155"/>
                   <polygon points="100,140 85,190 115,190" fill="#ffffff"/>
@@ -475,9 +476,9 @@
                 </g>
               </svg>
 
-              <canvas id="audioWaveCanvas" width="96" height="96" class="hidden"></canvas>
+              <canvas id="audioWaveCanvas" width="200" height="200" class="w-full h-full hidden"></canvas>
 
-              <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
+              <div id="blankBox" class="hidden text-center text-sm text-slate-400 font-mono">
                 [AIReN 音声ヒアリング]
               </div>
             </div>
@@ -757,18 +758,31 @@
       { id: 50, order: "FH-5678", actual: "FH-5678", isTrap: false, isMatch: true }
     ];
 
-    // ★ 画面上端に常に固定し、キーボード出現時も「①アバター」「②現在の入力テキスト」を確実に表示する制御
+    // ★ 画面上端に固定し、キーボード出現時も「①特大アバター(画面の約1/3)」「②現在の入力テキスト」を確実に表示する制御
+    let isCurrentlyTyping = false;
+
     function lockChatScreenToTop() {
       const chatScreen = document.getElementById('screenChat');
       if (!chatScreen || chatScreen.classList.contains('hidden')) return;
 
       window.scrollTo(0, 0);
-      if (window.visualViewport) {
-        chatScreen.style.top = `${window.visualViewport.offsetTop}px`;
-        chatScreen.style.height = `${window.visualViewport.height}px`;
-      } else {
-        chatScreen.style.top = '0px';
-        chatScreen.style.height = `${window.innerHeight}px`;
+      const vvHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const vvTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
+
+      chatScreen.style.top = `${vvTop}px`;
+      chatScreen.style.height = `${vvHeight}px`;
+
+      // テキスト入力中（キーボード表示時）は、可視領域から入力ボックス分を除いた残り（＝画面全体の約1/3）をすべてアバター枠に割り当てる
+      const avatarBox = document.getElementById('avatarBoxWrapper');
+      const inputBox = document.getElementById('inputBoxWrapper');
+      if (avatarBox && inputBox) {
+        if (isCurrentlyTyping) {
+          const inputHeight = inputBox.offsetHeight || 105;
+          const availableForAvatar = Math.max(150, vvHeight - inputHeight - 20);
+          avatarBox.style.height = `${availableForAvatar}px`;
+        } else {
+          avatarBox.style.height = '';
+        }
       }
     }
 
@@ -779,14 +793,14 @@
     window.addEventListener('resize', lockChatScreenToTop);
 
     function setChatTypingMode(isTyping) {
+      isCurrentlyTyping = isTyping;
       const chatLogWrapper = document.getElementById('chatLogWrapper');
-      if (!chatLogWrapper) return;
-
-      if (isTyping) {
-        // テキスト入力時は下部のチャットログを隠し、上から「①アバター」「②現在の入力テキスト」の2つだけを確実に表示
-        chatLogWrapper.classList.add('hidden', 'sm:flex');
-      } else {
-        chatLogWrapper.classList.remove('hidden', 'sm:flex');
+      if (chatLogWrapper) {
+        if (isTyping) {
+          chatLogWrapper.classList.add('hidden', 'sm:flex');
+        } else {
+          chatLogWrapper.classList.remove('hidden', 'sm:flex');
+        }
       }
       lockChatScreenToTop();
       setTimeout(lockChatScreenToTop, 100);
@@ -1469,11 +1483,11 @@
       function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.strokeStyle = waveActive ? '#2563eb' : '#94a3b8';
         for (let x = 0; x < canvas.width; x++) {
-          const amp = waveActive ? 20 : 3;
-          const y = canvas.height / 2 + Math.sin(x * 0.06 + angle) * amp;
+          const amp = waveActive ? 32 : 5;
+          const y = canvas.height / 2 + Math.sin(x * 0.05 + angle) * amp;
           if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
         ctx.stroke();
