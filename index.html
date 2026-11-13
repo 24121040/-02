@@ -437,18 +437,18 @@
 
       <!-- ==========================================
            画面6: AIReNヒアリング画面
-           ★ 画面上半分（上から260px以内）に「①アバター」「②質問文」「③入力欄」を上詰めで配置
-           ★ 下半分にキーボードが出ても、アバターと入力中の文字の両方が100%確実に見える構造
+           ★ 上から順に「①アバター」「②現在の入力テキスト欄」「③チャット履歴」の順で配置
+           ★ テキスト入力時は①アバターと②現在の入力テキスト欄が最上部に直結表示され絶対に隠れない構造
            ========================================== -->
-      <section id="screenChat" class="hidden fixed inset-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
-        <div class="w-full max-w-xl mx-auto flex flex-col justify-start p-2 sm:p-4 gap-1.5 sm:gap-2.5">
+      <section id="screenChat" class="hidden fixed inset-x-0 top-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
+        <div class="w-full max-w-xl mx-auto flex flex-col justify-start p-1.5 sm:p-3 gap-1.5 h-full">
           
-          <!-- ① 最上部固定: アバター枠（ラベルを左右上角に配置して高さを節約） -->
-          <div id="avatarBoxWrapper" class="shrink-0 bg-white border-2 border-slate-200 rounded-xl px-3 py-1.5 flex items-center justify-center relative shadow-sm transition-all duration-150">
-            <span class="absolute left-3 top-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">品質管理AI「AIReN」</span>
-            <span id="avatarStatusText" class="absolute right-3 top-1.5 text-[10px] font-bold text-blue-600 font-mono">● 待機中</span>
+          <!-- ① 1段目（最上部常時固定）: アバター枠 -->
+          <div id="avatarBoxWrapper" class="shrink-0 bg-white border-2 border-slate-200 rounded-xl px-3 py-1 flex items-center justify-center relative shadow-sm">
+            <span class="absolute left-2.5 top-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">品質管理AI「AIReN」</span>
+            <span id="avatarStatusText" class="absolute right-2.5 top-1 text-[10px] font-bold text-blue-600 font-mono">● 待機中</span>
             
-            <div id="avatarContainer" class="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center relative transition-all duration-150 mt-2">
+            <div id="avatarContainer" class="w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center relative mt-1">
               <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
                 <g id="avatarBody">
@@ -475,7 +475,7 @@
                 </g>
               </svg>
 
-              <canvas id="audioWaveCanvas" width="110" height="110" class="hidden"></canvas>
+              <canvas id="audioWaveCanvas" width="96" height="96" class="hidden"></canvas>
 
               <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
                 [AIReN 音声ヒアリング]
@@ -483,30 +483,30 @@
             </div>
           </div>
 
-          <!-- ② アバターのすぐ下: 質問メッセージ＆回答入力ボックス（上詰め配置でキーボードに絶対隠れない） -->
-          <div class="shrink-0 flex flex-col bg-white border-2 border-blue-200 rounded-xl overflow-hidden shadow-md">
-            
-            <!-- 回答入力欄を上に配置するか、コンパクトなチャット枠の直下に配置 -->
-            <div id="chatMessages" class="max-h-[150px] sm:max-h-[240px] p-2.5 overflow-y-auto space-y-2 bg-slate-50 transition-all duration-150">
+          <!-- ② 2段目（アバターのすぐ真下に直結）: 現在の入力テキスト枠 -->
+          <div id="inputBoxWrapper" class="shrink-0 bg-white border-2 border-blue-400 rounded-xl p-2 sm:p-3 space-y-1 shadow-md">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-slate-700">✏️ 現在の入力テキスト（※15文字以上）</span>
+              <span id="charCount" class="font-mono font-bold text-blue-600">0 / 15 文字</span>
             </div>
-
-            <!-- ③ 自分の入力欄（2行表示・濃い黒文字で今打っている内容がハッキリ見える） -->
-            <div class="bg-white border-t-2 border-slate-200 p-2 sm:p-3 space-y-1">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="font-bold text-slate-700">✏️ あなたの回答を入力（※15文字以上）</span>
-                <span id="charCount" class="font-mono font-bold text-blue-600">0 / 15 文字</span>
-              </div>
-              <div class="flex gap-2 items-stretch">
-                <textarea id="inputChat" rows="2" placeholder="ここをタップして当時の状況や判断を入力..." class="flex-grow px-3 py-1.5 bg-yellow-50/40 border-2 border-slate-300 rounded-lg text-base font-medium text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none resize-none leading-snug"></textarea>
-                <button id="btnSendChat" class="px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center justify-center shrink-0">
-                  送信
-                </button>
-              </div>
-              <p id="chatValidationMsg" class="text-[11px] text-rose-600 hidden font-bold">
-                ※15文字以上で具体的に入力してください。
-              </p>
+            <div class="flex gap-1.5 items-stretch">
+              <textarea id="inputChat" rows="2" placeholder="ここをタップして回答を入力..." class="flex-grow px-2.5 py-1.5 bg-yellow-50/40 border-2 border-slate-300 rounded-lg text-base font-medium text-slate-900 focus:bg-white focus:border-blue-600 focus:outline-none resize-none leading-snug"></textarea>
+              <button id="btnSendChat" class="px-4 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center justify-center shrink-0">
+                送信
+              </button>
             </div>
+            <p id="chatValidationMsg" class="text-[11px] text-rose-600 hidden font-bold">
+              ※15文字以上で具体的に入力してください。
+            </p>
+          </div>
 
+          <!-- ③ 3段目（下部）: AIの質問文・チャット履歴 -->
+          <div id="chatLogWrapper" class="flex-1 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-0 flex flex-col">
+            <div class="bg-slate-100 px-3 py-1 border-b border-slate-200 text-[10px] font-bold text-slate-500 shrink-0">
+              AIReNからの質問・対話ログ
+            </div>
+            <div id="chatMessages" class="flex-1 p-2.5 overflow-y-auto space-y-2 bg-slate-50">
+            </div>
           </div>
 
         </div>
@@ -757,26 +757,40 @@
       { id: 50, order: "FH-5678", actual: "FH-5678", isTrap: false, isMatch: true }
     ];
 
-    // ★ テキスト入力中（キーボード表示時）にアバターと質問枠をスリム化し、入力欄を確実に画面内へ収める制御
+    // ★ 画面上端に常に固定し、キーボード出現時も「①アバター」「②現在の入力テキスト」を確実に表示する制御
+    function lockChatScreenToTop() {
+      const chatScreen = document.getElementById('screenChat');
+      if (!chatScreen || chatScreen.classList.contains('hidden')) return;
+
+      window.scrollTo(0, 0);
+      if (window.visualViewport) {
+        chatScreen.style.top = `${window.visualViewport.offsetTop}px`;
+        chatScreen.style.height = `${window.visualViewport.height}px`;
+      } else {
+        chatScreen.style.top = '0px';
+        chatScreen.style.height = `${window.innerHeight}px`;
+      }
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', lockChatScreenToTop);
+      window.visualViewport.addEventListener('scroll', lockChatScreenToTop);
+    }
+    window.addEventListener('resize', lockChatScreenToTop);
+
     function setChatTypingMode(isTyping) {
-      const avatarContainer = document.getElementById('avatarContainer');
-      const chatMessages = document.getElementById('chatMessages');
-      if (!avatarContainer || !chatMessages) return;
+      const chatLogWrapper = document.getElementById('chatLogWrapper');
+      if (!chatLogWrapper) return;
 
       if (isTyping) {
-        // キーボード表示時: アバターを80px(w-20 h-20)、チャット枠を最大70pxにスリム化
-        avatarContainer.className = "w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center relative transition-all duration-150 mt-1";
-        chatMessages.className = "max-h-[68px] sm:max-h-[180px] p-2 overflow-y-auto space-y-1.5 bg-slate-50 transition-all duration-150";
+        // テキスト入力時は下部のチャットログを隠し、上から「①アバター」「②現在の入力テキスト」の2つだけを確実に表示
+        chatLogWrapper.classList.add('hidden', 'sm:flex');
       } else {
-        // 通常時: アバターを96px(w-24 h-24)、チャット枠を最大150pxに戻す
-        avatarContainer.className = "w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center relative transition-all duration-150 mt-2";
-        chatMessages.className = "max-h-[150px] sm:max-h-[240px] p-2.5 overflow-y-auto space-y-2 bg-slate-50 transition-all duration-150";
+        chatLogWrapper.classList.remove('hidden', 'sm:flex');
       }
-
-      setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        window.scrollTo(0, 0);
-      }, 50);
+      lockChatScreenToTop();
+      setTimeout(lockChatScreenToTop, 100);
+      setTimeout(lockChatScreenToTop, 300);
     }
 
     function showScreen(screenId) {
@@ -794,7 +808,7 @@
 
       if (screenId === 'screenChat') {
         document.body.style.overflow = 'hidden';
-        window.scrollTo(0, 0);
+        lockChatScreenToTop();
       } else {
         document.body.style.overflow = '';
         window.scrollTo(0, 0);
@@ -1070,11 +1084,10 @@
           if (len >= 15) {
             document.getElementById('chatValidationMsg').classList.add('hidden');
           }
-          // 入力文字が増えた際も自分の打っている末尾が常に見えるようにスクロール
           inputChat.scrollTop = inputChat.scrollHeight;
+          lockChatScreenToTop();
         });
 
-        // 入力欄タップ時（キーボード出現時）にスリムモードへ切り替え
         inputChat.addEventListener('focus', () => {
           setChatTypingMode(true);
         });
@@ -1459,7 +1472,7 @@
         ctx.lineWidth = 3;
         ctx.strokeStyle = waveActive ? '#2563eb' : '#94a3b8';
         for (let x = 0; x < canvas.width; x++) {
-          const amp = waveActive ? 22 : 4;
+          const amp = waveActive ? 20 : 3;
           const y = canvas.height / 2 + Math.sin(x * 0.06 + angle) * amp;
           if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
@@ -1476,7 +1489,7 @@
       msgDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
       const bubble = document.createElement('div');
-      bubble.className = `max-w-[90%] rounded-xl px-3 py-1.5 text-xs sm:text-sm leading-snug shadow-sm ${
+      bubble.className = `max-w-[92%] rounded-xl px-3 py-1.5 text-xs sm:text-sm leading-snug shadow-sm ${
         sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-800 font-medium'
       }`;
       bubble.textContent = text;
@@ -1509,7 +1522,7 @@
       document.getElementById('charCount').textContent = '0 / 15 文字';
       state.chatStep++;
 
-      // 送信後に一度キーボードを閉じてAIの次の質問と口パクを見やすくする
+      // 送信時にキーボードを閉じて下部の質問ログも再度見えるようにする
       input.blur();
 
       setTimeout(askNextQuestion, 800);
