@@ -2,10 +2,20 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>業務データ照合システム - AIReN</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* 要件3: スワイプによるページ再読み込み（プルリフレッシュ）やバウンスを防止 */
+    html, body {
+      overscroll-behavior-y: none;
+      touch-action: pan-x pan-y;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* 要件1: ボタン連打時のダブルタップ拡大を防止 */
+    button, label, input, textarea {
+      touch-action: manipulation;
+    }
     @keyframes pulse-subtle {
       0%, 100% { transform: scale(1); opacity: 0.95; }
       50% { transform: scale(1.02); opacity: 1; }
@@ -30,35 +40,35 @@
       animation: nod 0.7s ease-in-out;
     }
     /* カスタムスクロールバー */
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-blue-200">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-[100dvh] flex flex-col justify-between selection:bg-blue-200">
 
   <!-- ヘッダーナビゲーション -->
-  <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shadow-sm">
-    <div class="flex items-center space-x-3">
-      <div class="w-7 h-7 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-sm tracking-wider">QC</div>
-      <span class="font-semibold text-slate-700 tracking-tight">品質管理・データ照合コンソール (AIReN Ver 2.4)</span>
+  <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 flex justify-between items-center shadow-sm shrink-0">
+    <div class="flex items-center space-x-2">
+      <div class="w-6 h-6 sm:w-7 sm:h-7 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs sm:text-sm tracking-wider shrink-0">QC</div>
+      <span class="font-semibold text-slate-700 tracking-tight text-xs sm:text-base truncate">品質管理・データ照合コンソール (AIReN)</span>
     </div>
-    <div id="sessionHeaderInfo" class="text-xs text-slate-500 font-mono">
+    <div id="sessionHeaderInfo" class="text-[11px] sm:text-xs text-slate-500 font-mono shrink-0 ml-2">
       Ready
     </div>
   </header>
 
   <!-- メインコンテンツ領域 -->
-  <main class="flex-grow flex items-center justify-center p-4">
+  <main class="flex-grow flex items-center justify-center p-2 sm:p-4">
     <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
 
       <!-- ==========================================
-           画面1: 実験設定画面 (自動均等割り振り & 手動切替)
+           画面1: 実験設定画面 (アクセス順自動割り振り & 手動切替)
            ========================================== -->
-      <section id="screenSetup" class="p-8 space-y-6">
-        <div class="border-b border-slate-200 pb-4 text-center">
-          <h1 class="text-2xl font-bold text-slate-800">照合業務タスク - 実験セッション設定</h1>
-          <p class="text-sm text-slate-500 mt-1">指示された被験者IDおよび割り当て条件を確認・入力してください。</p>
+      <section id="screenSetup" class="p-4 sm:p-8 space-y-5">
+        <div class="border-b border-slate-200 pb-3 text-center">
+          <h1 class="text-xl sm:text-2xl font-bold text-slate-800">照合業務タスク - 実験セッション設定</h1>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">指示された被験者IDおよび割り当て条件を確認・入力してください。</p>
         </div>
 
         <div class="space-y-4 max-w-lg mx-auto">
@@ -71,30 +81,30 @@
           <div>
             <div class="flex justify-between items-center mb-1">
               <label class="block text-sm font-semibold text-slate-700">割り当て実験条件</label>
-              <span id="condAssignBadge" class="text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded">自動均等割り当て中</span>
+              <span id="condAssignBadge" class="text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded">アクセス順で取得中...</span>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
               <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="A" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700">条件 A</span>
+                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 A</span>
               </label>
               <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="B" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700">条件 B</span>
+                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 B</span>
               </label>
               <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="C" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700">条件 C</span>
+                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 C</span>
               </label>
               <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="D" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700">条件 D</span>
+                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 D</span>
               </label>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">※アクセス時に均等に自動選択されます。検証時は手動で選択を変更できます。</p>
+            <p class="text-[11px] text-slate-400 mt-1">※サイトを開いた順にA➔B➔C➔Dと自動選択されます。検証時は手動で変更できます。</p>
           </div>
 
-          <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1">
+          <div class="bg-amber-50 border-l-4 border-amber-400 p-3.5 sm:p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1">
             <div class="font-bold text-sm text-amber-900 mb-1">【作業規定およびタスクルール】</div>
             <p>1. あなたは遠隔の他参加者3名と4人1組の「照合検査班」に割り当てられます。</p>
             <p>2. <strong>チーム4名全員が3分以内に全50問をミスなく完了</strong>した場合のみ「合格」となります。</p>
@@ -117,52 +127,58 @@
       <!-- ==========================================
            画面2: チュートリアル画面 (練習2問 ＋ マッチング演出)
            ========================================== -->
-      <section id="screenTutorial" class="hidden p-6 space-y-5">
+      <section id="screenTutorial" class="hidden p-4 sm:p-6 space-y-4">
         <!-- 上部：マッチング進行中ステータスバー -->
-        <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 flex items-center justify-between text-xs shadow-sm">
+        <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between text-xs shadow-sm">
           <div class="flex items-center space-x-2">
-            <span class="relative flex h-2.5 w-2.5">
+            <span class="relative flex h-2.5 w-2.5 shrink-0">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
             </span>
-            <span class="font-medium text-slate-600">照合検査班の編成:</span>
-            <span id="tutMatchingCount" class="font-mono font-bold text-amber-700">学内待機者を探索中... (1/4名接続)</span>
+            <span class="font-medium text-slate-600 shrink-0">検査班編成:</span>
+            <span id="tutMatchingCount" class="font-mono font-bold text-amber-700 truncate">待機者を探索中... (1/4名)</span>
           </div>
-          <span class="text-[11px] text-slate-400 font-mono">LAN Sync: Active</span>
+          <span class="text-[10px] text-slate-400 font-mono hidden sm:inline">LAN Sync: Active</span>
         </div>
 
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3.5 flex items-center justify-between">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-wrap items-center justify-between gap-1">
           <div>
-            <span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider">チュートリアル練習</span>
-            <span id="tutStepBadge" class="ml-2 font-bold text-blue-900 text-sm">練習 1 / 2 問目</span>
+            <span class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider">練習</span>
+            <span id="tutStepBadge" class="ml-1.5 font-bold text-blue-900 text-sm">練習 1 / 2 問目</span>
           </div>
-          <span class="text-xs text-blue-700">※練習セッション（タイマーは動作しません）</span>
+          <span class="text-[11px] text-blue-700">※タイマーは動作しません</span>
         </div>
 
-        <div id="tutGuideText" class="p-3 bg-slate-50 border border-slate-200 rounded text-sm text-slate-700 leading-relaxed font-medium">
+        <div id="tutGuideText" class="p-3 bg-slate-50 border border-slate-200 rounded text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
           【練習1】まずは規定の「詳細照合ツール」を押してみましょう。2.5秒間の解析完了後、「承認」ボタンが押せるようになります。
         </div>
 
-        <!-- 照合対象比較枠 -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">発注伝票データ</span>
-            <div class="space-y-2">
-              <div><span class="text-xs text-slate-400">コード:</span> <span id="tutOrderCode" class="font-mono text-xl font-bold text-slate-800">AB-4821</span></div>
-              <div class="text-xs text-slate-600">数量: 120個 | 区分: 常温保管</div>
+        <!-- 照合対象比較枠（要件2: 品名コードの改行防止） -->
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
+          <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
+            <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">発注伝票データ</span>
+            <div class="space-y-1.5">
+              <div>
+                <span class="text-[11px] text-slate-400 block">品名コード:</span>
+                <span id="tutOrderCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">AB-4821</span>
+              </div>
+              <div class="text-[11px] sm:text-xs text-slate-600">数量: 120個 | 区分: 常温</div>
             </div>
           </div>
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">出荷現品データ</span>
-            <div class="space-y-2">
-              <div><span class="text-xs text-slate-400">コード:</span> <span id="tutActualCode" class="font-mono text-xl font-bold text-slate-800">AB-4821</span></div>
-              <div class="text-xs text-slate-600">数量: 120個 | 区分: 常温保管</div>
+          <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
+            <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">出荷現品データ</span>
+            <div class="space-y-1.5">
+              <div>
+                <span class="text-[11px] text-slate-400 block">品名コード:</span>
+                <span id="tutActualCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">AB-4821</span>
+              </div>
+              <div class="text-[11px] sm:text-xs text-slate-600">数量: 120個 | 区分: 常温</div>
             </div>
           </div>
         </div>
 
         <!-- 詳細照合ツール枠 -->
-        <div id="tutToolContainer" class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
+        <div id="tutToolContainer" class="bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
             <span id="tutToolStatus" class="text-xs font-mono text-slate-500">待機中</span>
@@ -170,34 +186,33 @@
           <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
             <div id="tutToolProgress" class="bg-blue-600 h-full w-0"></div>
           </div>
-          <div class="flex justify-between items-center pt-1">
-            <button id="btnTutTool" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
-              ▶ 詳細照合ツールを実行する（規定手順：待機2.5秒）
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-1">
+            <button id="btnTutTool" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
+              ▶ 詳細照合ツールを実行する（待機2.5秒）
             </button>
-            <div id="tutToolResult" class="text-xs font-bold"></div>
+            <div id="tutToolResult" class="text-xs font-bold text-center sm:text-right"></div>
           </div>
         </div>
 
         <!-- 判定ボタン -->
-        <div class="grid grid-cols-2 gap-4 pt-1">
-          <button id="btnTutMismatch" class="py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-lg transition shadow">
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-1">
+          <button id="btnTutMismatch" class="py-3.5 sm:py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
             ✕ 不一致（差し戻し）
           </button>
-          <button id="btnTutMatch" class="py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-lg transition shadow">
+          <button id="btnTutMatch" class="py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
             ◯ 完全一致（承認）
           </button>
         </div>
 
-        <!-- ★ チュートリアル終了時のマッチング成立エリア ★ -->
+        <!-- チュートリアル終了時のマッチング成立エリア -->
         <div id="tutEndArea" class="hidden pt-3 border-t border-slate-200 space-y-4">
-          <!-- 1. マッチング処理中アニメーション（1.5秒間表示） -->
           <div id="matchingLoadingBox" class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-center">
-            <div class="flex items-center justify-center space-x-2 text-sm font-bold text-slate-700">
-              <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div class="flex items-center justify-center space-x-2 text-xs sm:text-sm font-bold text-slate-700">
+              <svg class="animate-spin h-5 w-5 text-blue-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
-              <span>他参加者のチュートリアル完了を待機し、チームを編成しています...</span>
+              <span>他参加者の完了を待機し、チームを編成しています...</span>
             </div>
             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
               <div id="matchProgressFill" class="bg-blue-600 h-full w-0 transition-all duration-1000"></div>
@@ -205,39 +220,37 @@
             <p id="matchProgressDetail" class="text-xs text-slate-500 font-mono">学内ネットワーク同期中 (1/4人)</p>
           </div>
 
-          <!-- 2. マッチング完了カード（アニメーション完了後に表示） -->
-          <div id="matchingCompleteBox" class="hidden p-5 bg-emerald-50 border-2 border-emerald-400 rounded-xl space-y-4 shadow-sm">
+          <div id="matchingCompleteBox" class="hidden p-4 sm:p-5 bg-emerald-50 border-2 border-emerald-400 rounded-xl space-y-4 shadow-sm">
             <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
               <div class="flex items-center space-x-2">
                 <span class="w-6 h-6 bg-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-sm">✓</span>
-                <span class="font-bold text-emerald-900 text-base">チームマッチング成立！</span>
+                <span class="font-bold text-emerald-900 text-sm sm:text-base">チームマッチング成立！</span>
               </div>
               <span id="tutAssignedTeamBadge" class="bg-emerald-600 text-white text-xs px-2.5 py-1 rounded font-bold tracking-wider">
                 検査第3班（4名編成）
               </span>
             </div>
 
-            <!-- 4名のメンバーカード -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <div class="p-3 bg-white rounded-lg border-2 border-emerald-400 shadow-sm text-center">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">あなた</div>
-                <div id="cardYouId" class="font-mono font-black text-emerald-700 text-base mt-0.5">P001</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1">● チュートリアル済</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+              <div class="p-2.5 bg-white rounded-lg border-2 border-emerald-400 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">あなた</div>
+                <div id="cardYouId" class="font-mono font-black text-emerald-700 text-sm sm:text-base mt-0.5">P001</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 準備完了</div>
               </div>
-              <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">参加者 2</div>
-                <div id="cardPeer1Id" class="font-mono font-bold text-slate-700 text-base mt-0.5">P-382</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1">● 接続完了・待機中</div>
+              <div class="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">参加者 2</div>
+                <div id="cardPeer1Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P-382</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 接続完了</div>
               </div>
-              <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">参加者 3</div>
-                <div id="cardPeer2Id" class="font-mono font-bold text-slate-700 text-base mt-0.5">P-519</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1">● 接続完了・待機中</div>
+              <div class="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">参加者 3</div>
+                <div id="cardPeer2Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P-519</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 接続完了</div>
               </div>
-              <div class="p-3 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">参加者 4</div>
-                <div id="cardPeer3Id" class="font-mono font-bold text-slate-700 text-base mt-0.5">P-104</div>
-                <div class="text-[10px] text-emerald-600 font-bold mt-1">● 接続完了・待機中</div>
+              <div class="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">参加者 4</div>
+                <div id="cardPeer3Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P-104</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 接続完了</div>
               </div>
             </div>
 
@@ -247,7 +260,7 @@
             </div>
 
             <div class="text-center pt-1">
-              <button id="btnFinishTutorial" class="w-full sm:w-auto px-10 py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-base shadow transition transform hover:-translate-y-0.5">
+              <button id="btnFinishTutorial" class="w-full sm:w-auto px-10 py-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-base shadow transition">
                 本番タスクのスタンバイへ進む →
               </button>
             </div>
@@ -256,9 +269,9 @@
       </section>
 
       <!-- ==========================================
-           画面3: 本番開始スタンバイ画面 (チーム編成確定)
+           画面3: 本番開始スタンバイ画面 (要件7・8対応)
            ========================================== -->
-      <section id="screenReady" class="hidden p-8 space-y-6 relative">
+      <section id="screenReady" class="hidden p-5 sm:p-8 space-y-6 relative">
         <div class="flex justify-end">
           <button id="btnRestartTutorial" class="text-xs text-blue-600 hover:text-blue-800 font-semibold px-3 py-1.5 border border-blue-200 rounded-md hover:bg-blue-50 transition">
             ↺ チュートリアルをもう一度行う
@@ -266,10 +279,10 @@
         </div>
 
         <div class="text-center max-w-lg mx-auto space-y-5">
-          <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
             ⏱
           </div>
-          <h2 class="text-2xl font-bold text-slate-800">本番データ照合タスクのスタンバイ完了</h2>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-800">本番データ照合タスクのスタンバイ完了</h2>
 
           <!-- チーム編成ステータスカード -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs text-slate-600 space-y-3">
@@ -291,57 +304,65 @@
             </div>
           </div>
 
-          <p class="text-xs text-rose-600 font-bold leading-relaxed">
-            ※下のボタンを押した瞬間に、チーム4名全員の3分間タイマーが一斉に同期スタートします。心の準備が整ってから開始してください。
+          <!-- 要件7: 注意文言の変更 -->
+          <p class="text-sm text-rose-600 font-bold leading-relaxed">
+            ※指示が出たら、下のボタンを押して、スタートしてください。
           </p>
 
-          <button id="btnStartMainTask" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
-            本番タスクを開始する（180秒タイマー同期起動）
+          <!-- 要件8: 開始ボタン文言の変更 -->
+          <button id="btnStartMainTask" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xl rounded-xl shadow-lg transition">
+            本番タスクを開始する
           </button>
         </div>
       </section>
 
       <!-- ==========================================
-           画面4: 本番データ照合タスク画面
+           画面4: 本番データ照合タスク画面 (要件2: 改行防止)
            ========================================== -->
-      <section id="screenTask" class="hidden p-6 space-y-5">
-        <!-- 上部ヘッダー（中央特大タイマー ＆ チームバッジ） -->
+      <section id="screenTask" class="hidden p-4 sm:p-6 space-y-4">
+        <!-- 上部ヘッダー -->
         <div class="flex flex-col items-center justify-center border-b border-slate-200 pb-3 relative">
-          <div class="absolute right-0 top-0 flex items-center space-x-1.5 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded text-xs text-slate-600">
+          <div class="sm:absolute sm:right-0 sm:top-0 mb-1 sm:mb-0 flex items-center space-x-1.5 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded text-xs text-slate-600">
             <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
             <span id="taskHeaderTeamBadge" class="font-medium font-mono text-[11px]">検査第3班 [4名同期中]</span>
           </div>
 
-          <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">残り制限時間</span>
-          <div id="taskTimer" class="font-mono text-5xl md:text-6xl font-black text-slate-800 tracking-tight my-1">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">残り制限時間</span>
+          <div id="taskTimer" class="font-mono text-4xl sm:text-6xl font-black text-slate-800 tracking-tight my-0.5">
             03:00
           </div>
-          <div class="flex items-center space-x-4 text-xs font-medium text-slate-500">
+          <div class="flex items-center space-x-3 text-xs font-medium text-slate-500">
             <span>進捗: <strong id="taskProgress" class="text-slate-800 font-mono text-sm">1 / 50</strong> 件</span>
-            <span class="text-rose-600">※連帯責任：全員完遂が必須</span>
+            <span class="text-rose-600">※連帯責任：全員完遂必須</span>
           </div>
         </div>
 
-        <!-- 照合対象比較枠 -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">発注伝票データ</span>
-            <div class="space-y-2">
-              <div><span class="text-xs text-slate-400">品名コード:</span> <span id="orderCode" class="font-mono text-xl md:text-2xl font-bold text-slate-800 tracking-wider">--</span></div>
-              <div class="text-xs text-slate-600">数量: <span id="orderQty">--</span>個 | 区分: <span id="orderLoc">--</span></div>
+        <!-- 照合対象比較枠（要件2: 品名コードを独立行＆whitespace-nowrapで改行完全防止） -->
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
+          <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
+            <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">発注伝票データ</span>
+            <div class="space-y-1.5">
+              <div>
+                <span class="text-[11px] text-slate-400 block">品名コード:</span>
+                <span id="orderCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">--</span>
+              </div>
+              <div class="text-[11px] sm:text-xs text-slate-600">数量: <span id="orderQty">--</span>個 | 区分: <span id="orderLoc">--</span></div>
             </div>
           </div>
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">出荷現品データ</span>
-            <div class="space-y-2">
-              <div><span class="text-xs text-slate-400">品名コード:</span> <span id="actualCode" class="font-mono text-xl md:text-2xl font-bold text-slate-800 tracking-wider">--</span></div>
-              <div class="text-xs text-slate-600">数量: <span id="actualQty">--</span>個 | 区分: <span id="actualLoc">--</span></div>
+          <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
+            <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">出荷現品データ</span>
+            <div class="space-y-1.5">
+              <div>
+                <span class="text-[11px] text-slate-400 block">品名コード:</span>
+                <span id="actualCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">--</span>
+              </div>
+              <div class="text-[11px] sm:text-xs text-slate-600">数量: <span id="actualQty">--</span>個 | 区分: <span id="actualLoc">--</span></div>
             </div>
           </div>
         </div>
 
         <!-- 詳細照合ツール枠 -->
-        <div id="mainToolContainer" class="bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
+        <div id="mainToolContainer" class="bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
             <span id="toolStatus" class="text-xs font-mono text-slate-500">待機中</span>
@@ -349,20 +370,20 @@
           <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
             <div id="toolProgress" class="bg-blue-600 h-full w-0"></div>
           </div>
-          <div class="flex justify-between items-center pt-1">
-            <button id="btnTool" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
-              ▶ 詳細照合ツールを実行する（規定手順：待機2.5秒）
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 pt-1">
+            <button id="btnTool" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition">
+              ▶ 詳細照合ツールを実行する（待機2.5秒）
             </button>
-            <div id="toolResult" class="text-xs font-bold"></div>
+            <div id="toolResult" class="text-xs font-bold text-center sm:text-right"></div>
           </div>
         </div>
 
         <!-- 判定ボタン -->
-        <div class="grid grid-cols-2 gap-4 pt-2">
-          <button id="btnMismatch" class="py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-lg transition shadow">
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-1">
+          <button id="btnMismatch" class="py-3.5 sm:py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
             ✕ 不一致（差し戻し）
           </button>
-          <button id="btnMatch" class="py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-lg transition shadow">
+          <button id="btnMatch" class="py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
             ◯ 完全一致（承認）
           </button>
         </div>
@@ -385,216 +406,224 @@
       <!-- ==========================================
            画面5: インシデント通達画面
            ========================================== -->
-      <section id="screenAlert" class="hidden p-8 space-y-6">
-        <div class="text-center space-y-2">
-          <div class="inline-block p-3 bg-rose-100 rounded-full text-rose-600 text-3xl mb-1">⚠️</div>
-          <h2 class="text-2xl font-black text-rose-700 tracking-tight">重大なインシデント（誤出荷）を検知</h2>
+      <section id="screenAlert" class="hidden p-5 sm:p-8 space-y-5">
+        <div class="text-center space-y-1.5">
+          <div class="inline-block p-2.5 bg-rose-100 rounded-full text-rose-600 text-2xl sm:text-3xl">⚠️</div>
+          <h2 class="text-xl sm:text-2xl font-black text-rose-700 tracking-tight">重大なインシデント（誤出荷）を検知</h2>
           <p class="text-xs text-slate-500 font-mono">タスク終了ステータス判定</p>
         </div>
 
-        <div class="bg-rose-50 border border-rose-200 rounded-xl p-5 space-y-4">
-          <div class="flex justify-between items-center border-b border-rose-200 pb-2 text-sm">
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 sm:p-5 space-y-3">
+          <div class="flex justify-between items-center border-b border-rose-200 pb-2 text-xs sm:text-sm">
             <span class="text-slate-700 font-medium">回答処理件数:</span>
             <span id="alertAnswered" class="font-mono font-bold text-slate-900">0 / 50 件</span>
           </div>
-          <div class="flex justify-between items-center border-b border-rose-200 pb-2 text-sm">
+          <div class="flex justify-between items-center border-b border-rose-200 pb-2 text-xs sm:text-sm">
             <span class="text-slate-700 font-medium">品質判定結果:</span>
             <span class="font-bold text-rose-600">重大な照合見落とし（誤出荷）が発生</span>
           </div>
-          <div class="flex justify-between items-center text-sm">
+          <div class="flex justify-between items-center text-xs sm:text-sm">
             <span class="text-slate-700 font-medium">チーム評価ステータス:</span>
-            <span class="font-bold text-rose-700 bg-rose-200 px-2.5 py-0.5 rounded">連帯不合格（現在保留中）</span>
+            <span class="font-bold text-rose-700 bg-rose-200 px-2 py-0.5 rounded">連帯不合格（現在保留中）</span>
           </div>
         </div>
 
-        <!-- ミス箇所の明示枠 -->
-        <div class="space-y-2">
+        <div class="space-y-1.5">
           <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">検知された誤判定（見落とし）箇所:</span>
-          <div id="alertErrorList" class="bg-white border border-slate-200 rounded-lg p-3 text-xs max-h-36 overflow-y-auto space-y-1 font-mono">
-            <!-- JSで動的生成 -->
+          <div id="alertErrorList" class="bg-white border border-slate-200 rounded-lg p-3 text-xs max-h-32 overflow-y-auto space-y-1 font-mono">
           </div>
         </div>
 
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-xs text-slate-600 leading-relaxed space-y-2">
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-xs text-slate-600 leading-relaxed space-y-1.5">
           <p class="font-bold text-slate-800">【今後の手順について】</p>
           <p>本インシデントの発生原因を調査するため、品質管理AI「AIReN」による個別ヒアリングを実施します。</p>
           <p class="text-slate-500">※本ヒアリングの回答内容は、他のチームメンバーには一切公開されません。</p>
         </div>
 
-        <div class="text-center pt-2">
-          <button id="btnToChat" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shadow-md transition">
+        <div class="text-center pt-1">
+          <button id="btnToChat" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shadow-md transition">
             AIReNとの個別ヒアリングを開始する →
           </button>
         </div>
       </section>
 
       <!-- ==========================================
-           画面6: AIReNヒアリング画面 (横並び2カラム)
+           画面6: AIReNヒアリング画面 (要件4: 上半分アバター常時固定表示)
            ========================================== -->
-      <section id="screenChat" class="hidden p-6">
-        <div class="grid grid-cols-12 gap-6 items-start">
-
-          <!-- 左カラム: アバター枠 -->
-          <div class="col-span-12 md:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center sticky top-4 shadow-sm min-h-[320px]">
-            <span class="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">品質管理AI「AIReN」</span>
-            
-            <div id="avatarContainer" class="w-48 h-48 flex items-center justify-center relative">
-              <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
-                <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
-                <g id="avatarBody">
-                  <path d="M 40 190 Q 100 130 160 190 Z" fill="#334155"/>
-                  <polygon points="100,140 85,190 115,190" fill="#ffffff"/>
-                  <polygon points="100,150 95,190 105,190" fill="#2563eb"/>
+      <section id="screenChat" class="hidden flex flex-col h-[calc(100dvh-64px)] max-h-[760px] p-2.5 sm:p-5 gap-2.5">
+        
+        <!-- 上部（常時固定表示）: アバター枠 -->
+        <div class="shrink-0 bg-slate-50 border border-slate-200 rounded-xl p-2.5 sm:p-4 flex flex-col items-center justify-center shadow-sm">
+          <div class="w-full flex justify-between items-center px-2 mb-1">
+            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">品質管理AI「AIReN」</span>
+            <span id="avatarStatusText" class="text-[11px] font-medium text-slate-500 font-mono">● 待機中</span>
+          </div>
+          
+          <div id="avatarContainer" class="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center relative">
+            <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="90" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+              <g id="avatarBody">
+                <path d="M 40 190 Q 100 130 160 190 Z" fill="#334155"/>
+                <polygon points="100,140 85,190 115,190" fill="#ffffff"/>
+                <polygon points="100,150 95,190 105,190" fill="#2563eb"/>
+              </g>
+              <g id="avatarHead" class="origin-bottom">
+                <ellipse cx="100" cy="95" rx="42" ry="48" fill="#fde047" opacity="0.15"/>
+                <ellipse cx="100" cy="95" rx="38" ry="44" fill="#fed7aa"/>
+                <path d="M 62 85 Q 100 45 138 85 Q 140 60 100 55 Q 60 60 62 85 Z" fill="#1e293b"/>
+                <line x1="78" y1="78" x2="92" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="122" y1="78" x2="108" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
+                <g id="leftEye">
+                  <circle cx="85" cy="90" r="4.5" fill="#1e293b"/>
+                  <circle cx="86" cy="88.5" r="1.5" fill="#ffffff"/>
                 </g>
-                <g id="avatarHead" class="origin-bottom">
-                  <ellipse cx="100" cy="95" rx="42" ry="48" fill="#fde047" opacity="0.15"/>
-                  <ellipse cx="100" cy="95" rx="38" ry="44" fill="#fed7aa"/>
-                  <path d="M 62 85 Q 100 45 138 85 Q 140 60 100 55 Q 60 60 62 85 Z" fill="#1e293b"/>
-                  <line x1="78" y1="78" x2="92" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
-                  <line x1="122" y1="78" x2="108" y2="80" stroke="#334155" stroke-width="2.5" stroke-linecap="round"/>
-                  <g id="leftEye">
-                    <circle cx="85" cy="90" r="4.5" fill="#1e293b"/>
-                    <circle cx="86" cy="88.5" r="1.5" fill="#ffffff"/>
-                  </g>
-                  <g id="rightEye">
-                    <circle cx="115" cy="90" r="4.5" fill="#1e293b"/>
-                    <circle cx="116" cy="88.5" r="1.5" fill="#ffffff"/>
-                  </g>
-                  <path d="M 100 92 L 98 102 L 102 102" stroke="#d97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                  <path id="mouthPath" d="M 90 115 Q 100 118 110 115" stroke="#991b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <g id="rightEye">
+                  <circle cx="115" cy="90" r="4.5" fill="#1e293b"/>
+                  <circle cx="116" cy="88.5" r="1.5" fill="#ffffff"/>
                 </g>
-              </svg>
+                <path d="M 100 92 L 98 102 L 102 102" stroke="#d97706" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                <path id="mouthPath" d="M 90 115 Q 100 118 110 115" stroke="#991b1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </g>
+            </svg>
 
-              <canvas id="audioWaveCanvas" width="180" height="180" class="hidden"></canvas>
+            <canvas id="audioWaveCanvas" width="140" height="140" class="hidden"></canvas>
 
-              <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
-                [AIReN 音声ヒアリング]
-              </div>
-            </div>
-
-            <div id="avatarStatusText" class="mt-3 text-xs font-medium text-slate-500 font-mono">
-              ● 待機中
+            <div id="blankBox" class="hidden text-center text-xs text-slate-400 font-mono">
+              [AIReN 音声ヒアリング]
             </div>
           </div>
-
-          <!-- 右カラム: 対話メッセージ & 入力 -->
-          <div class="col-span-12 md:col-span-8 flex flex-col h-[520px] bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-            <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-4">
-            </div>
-
-            <div class="bg-white border-t border-slate-200 p-4 space-y-2">
-              <div class="flex items-center justify-between text-xs text-slate-500">
-                <span>あなたの回答を入力してください（※15文字以上）</span>
-                <span id="charCount" class="font-mono text-slate-400">0 / 15 文字</span>
-              </div>
-              <div class="flex gap-2">
-                <textarea id="inputChat" rows="2" placeholder="当時の状況や判断について入力してください..." class="flex-grow p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
-                <button id="btnSendChat" class="px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center justify-center">
-                  送信
-                </button>
-              </div>
-              <p id="chatValidationMsg" class="text-xs text-rose-600 hidden font-medium">
-                ※状況を正確に把握するため、15文字以上で具体的に入力してください。
-              </p>
-            </div>
-          </div>
-
         </div>
+
+        <!-- 下部（チャット履歴スクロール ＆ 入力エリア固定） -->
+        <div class="flex-grow flex flex-col bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-0">
+          <div id="chatMessages" class="flex-grow p-3 sm:p-4 overflow-y-auto space-y-3">
+          </div>
+
+          <div class="shrink-0 bg-white border-t border-slate-200 p-2.5 sm:p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-slate-500">
+              <span>回答を入力（※15文字以上）</span>
+              <span id="charCount" class="font-mono text-slate-400">0 / 15 文字</span>
+            </div>
+            <div class="flex gap-2">
+              <!-- 要件1: text-base (16px) でスマホ入力時の自動ズームを防止 -->
+              <textarea id="inputChat" rows="2" placeholder="当時の状況や判断について入力してください..." class="flex-grow p-2 border border-slate-300 rounded-lg text-base focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
+              <button id="btnSendChat" class="px-4 sm:px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm transition shadow flex items-center justify-center shrink-0">
+                送信
+              </button>
+            </div>
+            <p id="chatValidationMsg" class="text-[11px] text-rose-600 hidden font-medium">
+              ※状況を正確に把握するため、15文字以上で具体的に入力してください。
+            </p>
+          </div>
+        </div>
+
       </section>
 
       <!-- ==========================================
-           画面7: 事後アンケート画面 (5件法)
+           画面7: 事後アンケート画面 (要件9: 6件法・6択に変更)
            ========================================== -->
-      <section id="screenSurvey" class="hidden p-8 space-y-6">
+      <section id="screenSurvey" class="hidden p-4 sm:p-8 space-y-5">
         <div class="border-b border-slate-200 pb-3 text-center">
-          <h2 class="text-2xl font-bold text-slate-800">事後アンケート調査</h2>
-          <p class="text-xs text-slate-500 mt-1">AIReNとの対話について、あなたの率直な感覚をお答えください。</p>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-800">事後アンケート調査</h2>
+          <p class="text-xs text-slate-500 mt-1">AIReNとの対話について、あなたの率直な感覚をお答えください（1〜6の6段階評価）。</p>
         </div>
 
-        <form id="formSurvey" class="space-y-6 max-w-2xl mx-auto">
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-            <label class="block text-sm font-semibold text-slate-800">
+        <form id="formSurvey" class="space-y-5 max-w-2xl mx-auto">
+          <!-- Q1 -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
               Q1. 回答時、AIReNから責められている、または品定めされているような気持ちになりましたか？
             </label>
-            <div class="flex justify-between items-center text-xs text-slate-500 pt-1">
-              <span>全くそう思わない</span>
-              <span>非常にそう思う</span>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
+              <span>1: 全くそう思わない</span>
+              <span>6: 非常にそう思う</span>
             </div>
-            <div class="grid grid-cols-5 gap-2">
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+            <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q1_blamed" value="1" required class="mb-1 block mx-auto"> 1
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q1_blamed" value="2" class="mb-1 block mx-auto"> 2
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q1_blamed" value="3" class="mb-1 block mx-auto"> 3
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q1_blamed" value="4" class="mb-1 block mx-auto"> 4
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q1_blamed" value="5" class="mb-1 block mx-auto"> 5
               </label>
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
+                <input type="radio" name="q1_blamed" value="6" class="mb-1 block mx-auto"> 6
+              </label>
             </div>
           </div>
 
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-            <label class="block text-sm font-semibold text-slate-800">
+          <!-- Q2 -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
               Q2. 今回の状況において、暗黙の手順省略やミスがあっても正直に話すことができましたか？
             </label>
-            <div class="flex justify-between items-center text-xs text-slate-500 pt-1">
-              <span>全く話せなかった</span>
-              <span>非常に話せた</span>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
+              <span>1: 全く話せなかった</span>
+              <span>6: 非常に話せた</span>
             </div>
-            <div class="grid grid-cols-5 gap-2">
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+            <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q2_honest" value="1" required class="mb-1 block mx-auto"> 1
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q2_honest" value="2" class="mb-1 block mx-auto"> 2
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q2_honest" value="3" class="mb-1 block mx-auto"> 3
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q2_honest" value="4" class="mb-1 block mx-auto"> 4
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q2_honest" value="5" class="mb-1 block mx-auto"> 5
+              </label>
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
+                <input type="radio" name="q2_honest" value="6" class="mb-1 block mx-auto"> 6
               </label>
             </div>
           </div>
 
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-            <label class="block text-sm font-semibold text-slate-800">
+          <!-- Q3 -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
               Q3. 回答時、自身の保身（言い訳）よりも、組織の改善のための発言を優先しましたか？
             </label>
-            <div class="flex justify-between items-center text-xs text-slate-500 pt-1">
-              <span>保身を優先した</span>
-              <span>改善を優先した</span>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
+              <span>1: 保身を優先した</span>
+              <span>6: 改善を優先した</span>
             </div>
-            <div class="grid grid-cols-5 gap-2">
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+            <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q3_improvement" value="1" required class="mb-1 block mx-auto"> 1
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q3_improvement" value="2" class="mb-1 block mx-auto"> 2
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q3_improvement" value="3" class="mb-1 block mx-auto"> 3
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q3_improvement" value="4" class="mb-1 block mx-auto"> 4
               </label>
-              <label class="text-center p-2 border rounded cursor-pointer hover:bg-blue-50 text-xs">
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
                 <input type="radio" name="q3_improvement" value="5" class="mb-1 block mx-auto"> 5
+              </label>
+              <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
+                <input type="radio" name="q3_improvement" value="6" class="mb-1 block mx-auto"> 6
               </label>
             </div>
           </div>
 
           <div class="text-center pt-2">
-            <button type="submit" id="btnSubmitSurvey" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shadow transition">
+            <button type="submit" id="btnSubmitSurvey" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shadow transition">
               アンケートを送信して完了する
             </button>
           </div>
@@ -604,14 +633,14 @@
       <!-- ==========================================
            画面8: 実験完了・デブリーフィング画面
            ========================================== -->
-      <section id="screenComplete" class="hidden p-8 space-y-6">
+      <section id="screenComplete" class="hidden p-5 sm:p-8 space-y-6">
         <div class="text-center space-y-2">
           <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">✓</div>
-          <h2 class="text-2xl font-bold text-slate-800">すべての実験タスクが完了しました</h2>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-800">すべての実験タスクが完了しました</h2>
           <p id="submitStatusText" class="text-sm font-semibold text-blue-600">データをクラウドサーバーへ自動送信中...</p>
         </div>
 
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 text-xs text-amber-900 leading-relaxed space-y-3">
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 sm:p-5 text-xs text-amber-900 leading-relaxed space-y-3">
           <div class="font-bold text-sm text-amber-950">【研究目的および実験の種明かし（デブリーフィング）】</div>
           <p>
             本実験にご協力いただき誠にありがとうございました。<br>
@@ -628,12 +657,12 @@
           </div>
         </div>
 
-        <div class="text-center text-xs text-slate-500 pt-4">
+        <div class="text-center text-xs text-slate-500 pt-2">
           データが正常に記録されました。担当教員の指示があるまで、ブラウザを閉じずにこのまま静かにお待ちください。
         </div>
 
         <!-- 緊急時バックアップCSV保存 -->
-        <div class="text-right pt-6">
+        <div class="text-right pt-4">
           <button id="btnEmergencyTrigger" class="text-[10px] text-slate-300 hover:text-slate-400 font-mono">SysRef:OK</button>
           <div id="emergencyArea" class="hidden mt-2">
             <button id="btnEmergencySave" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded font-mono">
@@ -646,7 +675,7 @@
     </div>
   </main>
 
-  <footer class="py-2 text-center text-xs text-slate-400">
+  <footer class="py-1.5 text-center text-[11px] text-slate-400 shrink-0">
     HCI & Psychology Research Lab © 2026
   </footer>
 
@@ -660,6 +689,7 @@
     let state = {
       participantId: "P001",
       condition: "A",
+      isManualCondition: false,
       teamName: "検査第3班",
       peerIds: ["P-382", "P-519", "P-104"],
       taskTimeSpentSec: 0,
@@ -752,8 +782,10 @@
       const target = document.getElementById(screenId);
       if (target) target.classList.remove('hidden');
 
+      window.scrollTo(0, 0);
+
       const info = document.getElementById('sessionHeaderInfo');
-      if (info) info.textContent = `ID: ${state.participantId} | Condition: ${state.condition}`;
+      if (info) info.textContent = `ID: ${state.participantId} | Cond: ${state.condition}`;
     }
 
     function bindEvent(id, eventType, handler) {
@@ -782,8 +814,10 @@
       requestAnimationFrame(update);
     }
 
-    // ==================== スマホ対応 音声エンジン制御 ====================
+    // ==================== スマホ対応 音声エンジン & 口パク連動制御 ====================
     let isAudioUnlocked = false;
+    let mouthAnimInterval = null;
+    let waveActive = false;
 
     function unlockAudioOnFirstTouch() {
       if (isAudioUnlocked || !window.speechSynthesis) return;
@@ -797,11 +831,58 @@
     document.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true });
     document.addEventListener('click', unlockAudioOnFirstTouch, { once: true });
 
-    function speakText(text, onEndCallback) {
-      if (!window.speechSynthesis) {
+    // 要件5: 音声・文章の長さに完全連動する口パク＆波形制御
+    function startTalkingVisuals() {
+      stopTalkingVisuals();
+      if (state.condition === 'A') {
+        const mouth = document.getElementById('mouthPath');
+        let start = performance.now();
+        mouthAnimInterval = setInterval(() => {
+          const open = Math.sin((performance.now() - start) / 75) > 0;
+          mouth.setAttribute('d', open ? 'M 90 115 Q 100 128 110 115' : 'M 90 115 Q 100 118 110 115');
+        }, 70);
+      } else if (state.condition === 'C') {
+        waveActive = true;
+      }
+    }
+
+    function stopTalkingVisuals() {
+      if (mouthAnimInterval) {
+        clearInterval(mouthAnimInterval);
+        mouthAnimInterval = null;
+      }
+      const mouth = document.getElementById('mouthPath');
+      if (mouth) {
+        mouth.setAttribute('d', 'M 90 115 Q 100 118 110 115');
+      }
+      waveActive = false;
+    }
+
+    // 音声読み上げ関数（文章の長さに合わせたフォールバック付き）
+    function speakText(text, onEndCallback, syncAvatar = false) {
+      // 日本語1文字あたり約165msを標準発話時間として算出
+      const estimatedDurationMs = Math.max(1500, text.length * 165);
+      const startTime = performance.now();
+      let hasEnded = false;
+
+      if (syncAvatar) {
+        startTalkingVisuals();
+      }
+
+      function finishSpeech() {
+        if (hasEnded) return;
+        hasEnded = true;
+        if (syncAvatar) {
+          stopTalkingVisuals();
+        }
         if (onEndCallback) onEndCallback();
+      }
+
+      if (!window.speechSynthesis) {
+        setTimeout(finishSpeech, estimatedDurationMs);
         return;
       }
+
       if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
       }
@@ -818,20 +899,24 @@
         uttr.voice = jaVoice;
       }
 
-      let hasEnded = false;
       uttr.onend = () => {
-        if (!hasEnded) {
-          hasEnded = true;
-          if (onEndCallback) onEndCallback();
+        const elapsed = performance.now() - startTime;
+        // スマホで音声がブロックされ即座にonendが返った場合でも、文章の長さに合わせて口パクを維持する
+        if (syncAvatar && elapsed < 500) {
+          setTimeout(finishSpeech, estimatedDurationMs - elapsed);
+        } else {
+          finishSpeech();
         }
       };
-      uttr.onerror = (e) => {
-        console.warn("音声再生通知:", e);
-        if (!hasEnded) {
-          hasEnded = true;
-          if (onEndCallback) onEndCallback();
-        }
+
+      uttr.onerror = () => {
+        const elapsed = performance.now() - startTime;
+        const remain = Math.max(0, estimatedDurationMs - elapsed);
+        setTimeout(finishSpeech, remain);
       };
+
+      // 万が一モバイルブラウザでonendイベントが消失した場合の安全タイマー
+      setTimeout(finishSpeech, estimatedDurationMs + 2500);
 
       setTimeout(() => {
         window.speechSynthesis.speak(uttr);
@@ -841,7 +926,7 @@
     // ==================== 初期化・イベント設定 ====================
     window.addEventListener('DOMContentLoaded', () => {
       // 1. ダミーチーム情報のランダム生成（横目対策）
-      const randomTeamNum = Math.floor(2 + Math.random() * 7); // 検査第2班〜第8班
+      const randomTeamNum = Math.floor(2 + Math.random() * 7);
       state.teamName = `検査第${randomTeamNum}班`;
       state.peerIds = [
         "P-" + Math.floor(100 + Math.random() * 400),
@@ -849,27 +934,62 @@
         "P-" + Math.floor(800 + Math.random() * 190)
       ];
 
-      // 2. 条件A〜Dの均等割り振りと手動切り替え制御
+      // 2. 要件6: サイトを開いた順に A ➔ B ➔ C ➔ D を自動割り当て
       const conditions = ['A', 'B', 'C', 'D'];
       const params = new URLSearchParams(window.location.search);
-      let assignedCondition = '';
 
-      if (params.get('cond') && conditions.includes(params.get('cond').toUpperCase())) {
-        assignedCondition = params.get('cond').toUpperCase();
-        document.getElementById('condAssignBadge').textContent = `URLパラメータ指定: 条件${assignedCondition}`;
-      } else {
-        const randIndex = Math.floor(Math.random() * 4);
-        assignedCondition = conditions[randIndex];
-        document.getElementById('condAssignBadge').textContent = `自動割り当て中: 条件${assignedCondition}`;
+      function applyConditionRadio(cond, badgeText, badgeClass) {
+        state.condition = cond;
+        const radio = document.querySelector(`input[name="expCondition"][value="${cond}"]`);
+        if (radio) radio.checked = true;
+        const badge = document.getElementById('condAssignBadge');
+        if (badge) {
+          badge.textContent = badgeText;
+          if (badgeClass) badge.className = badgeClass;
+        }
       }
 
-      const assignedRadio = document.querySelector(`input[name="expCondition"][value="${assignedCondition}"]`);
-      if (assignedRadio) assignedRadio.checked = true;
+      if (params.get('cond') && conditions.includes(params.get('cond').toUpperCase())) {
+        const urlCond = params.get('cond').toUpperCase();
+        applyConditionRadio(urlCond, `URL指定: 条件${urlCond}`, "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded");
+      } else {
+        // 初期フォールバック（ローカル順序）を設定しつつ、GASサーバーから全体のアクセス順を取得
+        const localSeq = (parseInt(localStorage.getItem('airen_local_seq') || '0', 10));
+        localStorage.setItem('airen_local_seq', (localSeq + 1).toString());
+        const fallbackCond = conditions[localSeq % 4];
+        applyConditionRadio(fallbackCond, `アクセス順取得中... (仮:条件${fallbackCond})`, "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded");
 
+        // GASのdoGetへアクセスし、全体でのアクセス順（A->B->C->D）を取得
+        fetch(`${GAS_ENDPOINT_URL}?action=assign`, { method: 'GET' })
+          .then(res => res.json())
+          .then(data => {
+            if (!state.isManualCondition && data && data.condition && conditions.includes(data.condition)) {
+              applyConditionRadio(
+                data.condition,
+                `アクセス順自動割当: 条件${data.condition}`,
+                "text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded"
+              );
+            }
+          })
+          .catch(() => {
+            if (!state.isManualCondition) {
+              applyConditionRadio(
+                fallbackCond,
+                `自動割当: 条件${fallbackCond}`,
+                "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded"
+              );
+            }
+          });
+      }
+
+      // 手動でラジオボタンを切り替えた場合
       document.querySelectorAll('input[name="expCondition"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
-          document.getElementById('condAssignBadge').textContent = `手動変更済み: 条件${e.target.value}`;
-          document.getElementById('condAssignBadge').className = "text-[11px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded";
+          state.isManualCondition = true;
+          state.condition = e.target.value;
+          const badge = document.getElementById('condAssignBadge');
+          badge.textContent = `手動変更済み: 条件${e.target.value}`;
+          badge.className = "text-[11px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded";
         });
       });
 
@@ -897,7 +1017,7 @@
             toTut.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
             toTut.classList.add('bg-blue-600', 'hover:bg-blue-700', 'text-white', 'shadow');
           }
-        });
+        }, false);
       });
 
       bindEvent('btnToTutorial', 'click', () => {
@@ -907,9 +1027,7 @@
         startTutorial();
       });
 
-      // チュートリアル終了ボタン（マッチング完了カード内のボタン）
       bindEvent('btnFinishTutorial', 'click', () => {
-        // スタンバイ画面のチーム表示を更新
         document.getElementById('readyPid').textContent = state.participantId;
         document.getElementById('readyTeamTitle').textContent = `照合検査チーム：${state.teamName}`;
         document.getElementById('readyPeer1').textContent = state.peerIds[0];
@@ -977,7 +1095,7 @@
     function startTutorial() {
       state.currentTutIndex = 0;
       state.tutToolUsed = false;
-      document.getElementById('tutMatchingCount').textContent = "学内待機者を探索中... (1/4名接続)";
+      document.getElementById('tutMatchingCount').textContent = "待機者を探索中... (1/4名)";
       document.getElementById('tutEndArea').classList.add('hidden');
       document.getElementById('matchingLoadingBox').classList.remove('hidden');
       document.getElementById('matchingCompleteBox').classList.add('hidden');
@@ -993,7 +1111,7 @@
       document.getElementById('tutGuideText').textContent = q.note;
 
       const tutBox = document.getElementById('tutToolContainer');
-      tutBox.className = "bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
+      tutBox.className = "bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
 
       state.tutToolUsed = false;
       document.getElementById('tutToolStatus').textContent = '待機中';
@@ -1010,7 +1128,7 @@
       document.getElementById('tutToolStatus').textContent = '照合解析中... (2.5秒)';
 
       const tutBox = document.getElementById('tutToolContainer');
-      tutBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
+      tutBox.className = "bg-blue-50/70 p-3.5 sm:p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
       const pBar = document.getElementById('tutToolProgress');
       animateProgressBar(pBar, 2500, () => {
@@ -1021,12 +1139,12 @@
 
         if (q.isMatch) {
           res.textContent = '【判定：完全一致 (安全)】';
-          res.className = 'text-xs font-bold text-emerald-600';
-          tutBox.className = "bg-emerald-50 p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
+          res.className = 'text-xs font-bold text-emerald-600 text-center sm:text-right';
+          tutBox.className = "bg-emerald-50 p-3.5 sm:p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
           res.textContent = '【判定：不一致検知 (差分あり)】';
-          res.className = 'text-xs font-bold text-rose-600';
-          tutBox.className = "bg-rose-50 p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
+          res.className = 'text-xs font-bold text-rose-600 text-center sm:text-right';
+          tutBox.className = "bg-rose-50 p-3.5 sm:p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
 
         document.getElementById('btnTutMatch').disabled = false;
@@ -1037,16 +1155,13 @@
     function handleTutorialAnswer(userDecision) {
       state.currentTutIndex++;
       if (state.currentTutIndex < tutorialTasks.length) {
-        // 1問目完了時：マッチング進行度を上げる演出
-        document.getElementById('tutMatchingCount').textContent = "学内待機者を検知: 3/4名接続中...";
+        document.getElementById('tutMatchingCount').textContent = "待機者を検知: 3/4名接続中...";
         loadTutorialQuestion();
       } else {
-        // 2問目完了時：マッチング完了シーケンスを開始
         document.getElementById('btnTutMatch').disabled = true;
         document.getElementById('btnTutMismatch').disabled = true;
         document.getElementById('tutEndArea').classList.remove('hidden');
 
-        // マッチングローディングバーのアニメーション
         const fillBar = document.getElementById('matchProgressFill');
         const detailTxt = document.getElementById('matchProgressDetail');
         fillBar.style.width = '60%';
@@ -1057,20 +1172,18 @@
           detailTxt.textContent = "全4名の接続確立・セッション同期完了";
         }, 800);
 
-        // 1.5秒後に確定カードを表示
         setTimeout(() => {
           document.getElementById('matchingLoadingBox').classList.add('hidden');
           const completeBox = document.getElementById('matchingCompleteBox');
           completeBox.classList.remove('hidden');
 
-          // チーム情報と各メンバーIDの反映
           document.getElementById('tutAssignedTeamBadge').textContent = `${state.teamName}（4名編成）`;
           document.getElementById('cardYouId').textContent = state.participantId;
           document.getElementById('cardPeer1Id').textContent = state.peerIds[0];
           document.getElementById('cardPeer2Id').textContent = state.peerIds[1];
           document.getElementById('cardPeer3Id').textContent = state.peerIds[2];
-          document.getElementById('tutMatchingCount').textContent = `✓ チーム編成完了: ${state.teamName} [4/4名]`;
-          document.getElementById('tutMatchingCount').className = "font-mono font-bold text-emerald-600";
+          document.getElementById('tutMatchingCount').textContent = `✓ 編成完了: ${state.teamName} [4/4名]`;
+          document.getElementById('tutMatchingCount').className = "font-mono font-bold text-emerald-600 truncate";
         }, 1600);
       }
     }
@@ -1126,7 +1239,7 @@
       document.getElementById('actualLoc').textContent = trial.id % 2 === 0 ? "常温" : "冷蔵";
 
       const toolBox = document.getElementById('mainToolContainer');
-      toolBox.className = "bg-slate-100 p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
+      toolBox.className = "bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
 
       state.isToolActive = false;
       document.getElementById('toolStatus').textContent = '待機中';
@@ -1149,7 +1262,7 @@
       document.getElementById('toolStatus').textContent = '照合解析中... (2.5秒)';
 
       const toolBox = document.getElementById('mainToolContainer');
-      toolBox.className = "bg-blue-50/70 p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
+      toolBox.className = "bg-blue-50/70 p-3.5 sm:p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
       const pBar = document.getElementById('toolProgress');
       animateProgressBar(pBar, 2500, () => {
@@ -1159,12 +1272,12 @@
 
         if (trial.isMatch) {
           res.textContent = '【判定：完全一致 (安全)】';
-          res.className = 'text-xs font-bold text-emerald-600';
-          toolBox.className = "bg-emerald-50 p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
+          res.className = 'text-xs font-bold text-emerald-600 text-center sm:text-right';
+          toolBox.className = "bg-emerald-50 p-3.5 sm:p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
           res.textContent = '【判定：差異検知 (不一致)】';
-          res.className = 'text-xs font-bold text-rose-600';
-          toolBox.className = "bg-rose-50 p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
+          res.className = 'text-xs font-bold text-rose-600 text-center sm:text-right';
+          toolBox.className = "bg-rose-50 p-3.5 sm:p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
 
         document.getElementById('btnMatch').disabled = false;
@@ -1250,6 +1363,9 @@
       "今回のエラーが発生してしまった根本的な原因は何だと考えていますか？率直にお聞かせください。"
     ];
 
+    let blinkTimer = null;
+    let visualizerInitialized = false;
+
     function startChatSession() {
       state.chatStep = 0;
       showScreen('screenChat');
@@ -1272,16 +1388,21 @@
         startBlinking();
       } else if (state.condition === 'B') {
         svg.classList.remove('hidden');
+        document.getElementById('avatarBody').classList.remove('animate-breathe');
       } else if (state.condition === 'C') {
         canvas.classList.remove('hidden');
-        initAudioVisualizer();
+        if (!visualizerInitialized) {
+          initAudioVisualizer();
+          visualizerInitialized = true;
+        }
       } else {
         blank.classList.remove('hidden');
       }
     }
 
     function startBlinking() {
-      setInterval(() => {
+      if (blinkTimer) clearInterval(blinkTimer);
+      blinkTimer = setInterval(() => {
         if (state.condition !== 'A') return;
         const left = document.getElementById('leftEye');
         const right = document.getElementById('rightEye');
@@ -1296,6 +1417,7 @@
 
     function askNextQuestion() {
       if (state.chatStep >= chatQuestions.length) {
+        stopTalkingVisuals();
         showScreen('screenSurvey');
         return;
       }
@@ -1303,30 +1425,14 @@
       const qText = chatQuestions[state.chatStep];
       appendChatMessage('airen', qText);
 
+      document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
+
+      // 要件5: syncAvatar=true で呼び出し、発話および文章の長さに合わせて口パク・波形を完全連動
       speakText(qText, () => {
         document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
-      });
-
-      document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
-      if (state.condition === 'A') animateMouthSync(qText.length * 80);
-      if (state.condition === 'C') pulseWave(qText.length * 80);
+      }, true);
     }
 
-    function animateMouthSync(durationMs) {
-      const mouth = document.getElementById('mouthPath');
-      let start = performance.now();
-      const interval = setInterval(() => {
-        if (performance.now() - start > durationMs) {
-          clearInterval(interval);
-          mouth.setAttribute('d', 'M 90 115 Q 100 118 110 115');
-          return;
-        }
-        const open = Math.sin((performance.now() - start) / 80) > 0;
-        mouth.setAttribute('d', open ? 'M 90 115 Q 100 128 110 115' : 'M 90 115 Q 100 118 110 115');
-      }, 70);
-    }
-
-    let waveActive = false;
     function initAudioVisualizer() {
       const canvas = document.getElementById('audioWaveCanvas');
       const ctx = canvas.getContext('2d');
@@ -1337,20 +1443,15 @@
         ctx.lineWidth = 3;
         ctx.strokeStyle = waveActive ? '#2563eb' : '#94a3b8';
         for (let x = 0; x < canvas.width; x++) {
-          const amp = waveActive ? 25 : 5;
-          const y = canvas.height / 2 + Math.sin(x * 0.05 + angle) * amp;
+          const amp = waveActive ? 22 : 4;
+          const y = canvas.height / 2 + Math.sin(x * 0.06 + angle) * amp;
           if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
         ctx.stroke();
-        angle += waveActive ? 0.2 : 0.04;
+        angle += waveActive ? 0.22 : 0.04;
         requestAnimationFrame(render);
       }
       render();
-    }
-
-    function pulseWave(durationMs) {
-      waveActive = true;
-      setTimeout(() => { waveActive = false; }, durationMs);
     }
 
     function appendChatMessage(sender, text) {
@@ -1359,7 +1460,7 @@
       msgDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
       const bubble = document.createElement('div');
-      bubble.className = `max-w-[80%] rounded-2xl p-3 text-sm leading-relaxed shadow-sm ${
+      bubble.className = `max-w-[85%] rounded-2xl p-3 text-xs sm:text-sm leading-relaxed shadow-sm ${
         sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-800'
       }`;
       bubble.textContent = text;
