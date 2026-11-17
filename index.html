@@ -117,11 +117,251 @@
               <span>🔊 ルールを音声で確認する</span>
             </button>
             <button id="btnToTutorial" disabled class="w-full sm:w-1/2 py-3 px-4 bg-slate-300 text-slate-500 rounded-lg font-bold text-base cursor-not-allowed transition flex items-center justify-center">
-              <span>チュートリアルへ進む →</span>
+              <span>事前アンケートへ進む →</span>
             </button>
           </div>
           <p id="ruleSpeechStatus" class="text-center text-xs text-slate-500">※「ルールを音声で確認する」を押して読み上げが完了すると、次へ進めます。</p>
         </div>
+      </section>
+
+      <!-- ==========================================
+           画面1.5 (画面1と画面2の間): BIGFIVE 性格特性アンケート画面 (TIPI-J 全10問・7件法)
+           ========================================== -->
+      <section id="screenBigFive" class="hidden p-4 sm:p-8 space-y-5">
+        <div class="border-b border-slate-200 pb-3 text-center">
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-800">事前アンケート（性格特性に関する調査）</h2>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            以下の言葉が普段のあなた自身にどのくらい当てはまるかについて、もっとも適切なものを選んでください（1〜7の7段階評価）。
+          </p>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-[11px] text-blue-900 grid grid-cols-2 sm:grid-cols-4 gap-1 text-center font-medium max-w-2xl mx-auto">
+          <div>1: 全く違うと思う</div>
+          <div>2: おおむね違う</div>
+          <div>3: 少し違うと思う</div>
+          <div>4: どちらでもない</div>
+          <div>5: 少しそう思う</div>
+          <div>6: おおむねそう思う</div>
+          <div class="col-span-2 sm:col-span-1 font-bold">7: 強くそう思う</div>
+        </div>
+
+        <form id="formBigFive" class="space-y-4 max-w-2xl mx-auto">
+          <!-- Q1: 外向性 (+) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q1. 活発で、外向的だと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q1" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q2: 協調性 (逆転) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q2. 他人に不満をもち、もめごとを起こしやすいと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q2" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q3: 勤勉性 (+) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q3. しっかりしていて、自分に厳しいと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q3" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q4: 神経症的傾向 (+) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q4. 心配性で、うろたえやすいと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q4" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q5: 開放性 (+) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q5. 新しいことが好きで、変わった考えをもつと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q5" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q6: 外向性 (逆転) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q6. ひかえめで、おとなしいと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q6" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q7: 協調性 (+) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q7. 人に気をつかう、やさしい人間だと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q7" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q8: 勤勉性 (逆転) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q8. だらしなく、うっかりしていると思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q8" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q9: 神経症的傾向 (逆転) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q9. 冷静で、気分が安定していると思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q9" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <!-- Q10: 開放性 (逆転) -->
+          <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
+            <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+              Q10. 発想力に欠けた、平凡な人間だと思う
+            </label>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-0.5">
+              <span>1: 全く違うと思う</span>
+              <span>4: どちらでもない</span>
+              <span>7: 強くそう思う</span>
+            </div>
+            <div class="grid grid-cols-7 gap-1 sm:gap-2">
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="1" required class="mb-1 block mx-auto"> 1</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="2" class="mb-1 block mx-auto"> 2</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="3" class="mb-1 block mx-auto"> 3</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="4" class="mb-1 block mx-auto"> 4</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="5" class="mb-1 block mx-auto"> 5</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="6" class="mb-1 block mx-auto"> 6</label>
+              <label class="text-center py-2 px-0.5 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium"><input type="radio" name="bf_q10" value="7" class="mb-1 block mx-auto"> 7</label>
+            </div>
+          </div>
+
+          <div class="text-center pt-2">
+            <button type="submit" id="btnSubmitBigFive" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shadow transition">
+              回答してチュートリアルへ進む →
+            </button>
+          </div>
+        </form>
       </section>
 
       <!-- ==========================================
@@ -683,6 +923,8 @@
       isManualCondition: false,
       teamName: "検査第3班",
       peerIds: ["P-382", "P-519", "P-104"],
+      bigFiveResponses: {},
+      bigFiveScores: {},
       taskTimeSpentSec: 0,
       taskTotalAnswered: 0,
       taskToolSkipCount: 0,
@@ -772,7 +1014,6 @@
       chatScreen.style.top = `${vvTop}px`;
       chatScreen.style.height = `${vvHeight}px`;
 
-      // テキスト入力中（キーボード表示時）は、可視領域から入力ボックス分を除いた残り（＝画面全体の約1/3）をすべてアバター枠に割り当てる
       const avatarBox = document.getElementById('avatarBoxWrapper');
       const inputBox = document.getElementById('inputBoxWrapper');
       if (avatarBox && inputBox) {
@@ -809,7 +1050,7 @@
 
     function showScreen(screenId) {
       const screens = [
-        'screenSetup', 'screenTutorial', 'screenReady', 
+        'screenSetup', 'screenBigFive', 'screenTutorial', 'screenReady', 
         'screenTask', 'screenAlert', 'screenChat', 
         'screenSurvey', 'screenComplete'
       ];
@@ -1043,7 +1284,7 @@
 
         const ruleSpeech = "作業規定およびタスクルールをご案内します。あなたは遠隔の参加者と4人1組の検査班に割り当てられます。制限時間は3分間、全50問です。チーム4名全員が時間内にミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。確実な照合のため、規定の詳細照合ツールを用いて検査を行ってください。";
         speakText(ruleSpeech, () => {
-          status.textContent = '✓ 読み上げ完了：チュートリアルへ進んでください。';
+          status.textContent = '✓ 読み上げ完了：事前アンケートへ進んでください。';
           status.classList.add('text-emerald-600', 'font-bold');
           const toTut = document.getElementById('btnToTutorial');
           if (toTut) {
@@ -1054,12 +1295,19 @@
         }, false);
       });
 
+      // 画面1のボタンから画面1.5（BIGFIVEアンケート）へ遷移
       bindEvent('btnToTutorial', 'click', () => {
         state.participantId = document.getElementById('inputPid').value.trim() || 'P001';
         const checkedCond = document.querySelector('input[name="expCondition"]:checked');
         state.condition = checkedCond ? checkedCond.value : 'A';
-        startTutorial();
+        showScreen('screenBigFive');
       });
+
+      // 画面1.5（BIGFIVEアンケート）送信後、スコアを計算して画面2（チュートリアル）へ遷移
+      const formBigFive = document.getElementById('formBigFive');
+      if (formBigFive) {
+        formBigFive.addEventListener('submit', handleBigFiveSubmit);
+      }
 
       bindEvent('btnFinishTutorial', 'click', () => {
         document.getElementById('readyPid').textContent = state.participantId;
@@ -1133,6 +1381,28 @@
         }
       });
     });
+
+    // ==================== BIGFIVE (TIPI-J) 集計・スコア算出 ====================
+    function handleBigFiveSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const raw = {};
+      for (let i = 1; i <= 10; i++) {
+        raw[`q${i}`] = parseInt(form[`bf_q${i}`].value, 10);
+      }
+      state.bigFiveResponses = raw;
+
+      // TIPI-J 採点基準（逆転項目 Q2, Q6, Q8, Q9, Q10 は 8 - 回答値 で計算し、各2項目の平均を算出）
+      state.bigFiveScores = {
+        extraversion: (raw.q1 + (8 - raw.q6)) / 2,       // 外向性
+        agreeableness: ((8 - raw.q2) + raw.q7) / 2,      // 協調性
+        conscientiousness: (raw.q3 + (8 - raw.q8)) / 2,  // 勤勉性
+        neuroticism: (raw.q4 + (8 - raw.q9)) / 2,        // 神経症的傾向
+        openness: (raw.q5 + (8 - raw.q10)) / 2           // 開放性
+      };
+
+      startTutorial();
+    }
 
     // ==================== チュートリアル制御 ====================
     function startTutorial() {
@@ -1562,6 +1832,8 @@
         participantId: state.participantId,
         condition: state.condition,
         timestamp: new Date().toISOString(),
+        bigFiveResponses: state.bigFiveResponses,
+        bigFiveScores: state.bigFiveScores,
         taskTimeSpentSec: state.taskTimeSpentSec,
         taskTotalAnswered: state.taskTotalAnswered,
         taskToolSkipCount: state.taskToolSkipCount,
@@ -1593,10 +1865,12 @@
     }
 
     function exportDataAsCSV() {
+      const bfS = state.bigFiveScores || {};
+      const bfR = state.bigFiveResponses || {};
       let csv = "\uFEFF";
       csv += "=== PARTICIPANT SUMMARY ===\n";
-      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Survey_Q1,Survey_Q2,Survey_Q3\n";
-      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${state.chatResponses.q1.replace(/"/g, '""')}","${state.chatResponses.q2.replace(/"/g, '""')}","${state.chatResponses.q3.replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3}\n\n`;
+      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10\n";
+      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${state.chatResponses.q1.replace(/"/g, '""')}","${state.chatResponses.q2.replace(/"/g, '""')}","${state.chatResponses.q3.replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}\n\n`;
 
       csv += "=== TRIAL LOGS ===\n";
       csv += "TrialNumber,OrderCode,ActualCode,IsTrap,ToolUsed,UserDecision,IsCorrect,ResponseTime_ms\n";
