@@ -525,11 +525,11 @@
         <form id="formSurvey" class="space-y-5 max-w-2xl mx-auto">
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
-              Q1. 回答時、AIReNから責められている、または品定めされているような気持ちになりましたか？
+              Q1. AIReNからのヒアリングを受けている際、AIから『責められている』、あるいは『監視・品定めされている』ような圧迫感を感じましたか？
             </label>
             <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
-              <span>1: 全くそう思わない</span>
-              <span>6: 非常にそう思う</span>
+              <span>1: 全く感じなかった</span>
+              <span>6: 非常に強く感じた</span>
             </div>
             <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
               <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
@@ -555,11 +555,11 @@
 
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
-              Q2. 今回の状況において、暗黙の手順省略やミスがあっても正直に話すことができましたか？
+              Q2. AIReNとの対話において、自分のミスや手順の省略を正直に自己開示することについて、心理的なハードル（言いにくさや抵抗感）をどの程度感じましたか？
             </label>
             <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
-              <span>1: 全く話せなかった</span>
-              <span>6: 非常に話せた</span>
+              <span>1: 非常に言いにくかった</span>
+              <span>6: 自然と開示できた</span>
             </div>
             <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
               <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
@@ -585,11 +585,11 @@
 
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
-              Q3. 回答時、自身の保身（言い訳）よりも、組織の改善のための発言を優先しましたか？
+              Q3. ヒアリングに回答する際、あなたの中での意識の割合として『自分の責任やミスをかばう気持ち』と『今後のエラーを防ぐために組織へ提案したい気持ち』のどちらが強かったですか？
             </label>
             <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
-              <span>1: 保身を優先した</span>
-              <span>6: 改善を優先した</span>
+              <span>1: 自分の責任をかばう気持ちが強かった</span>
+              <span>6: エラーを防ぐ提案をしたい気持ちが強かった</span>
             </div>
             <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
               <label class="text-center py-2.5 px-1 border bg-white rounded-lg cursor-pointer hover:bg-blue-50 text-xs font-medium">
@@ -1401,9 +1401,9 @@
 
     // ==================== AIReN ヒアリング対話 ====================
     const chatQuestions = [
-      "先ほど誤出荷インシデントが検知されました。作業中、どのような状況でしたか？覚えている範囲で具体的に教えてください。",
-      "規定されていた『詳細照合ツール』による確認手順は、すべての伝票で守られていましたか？",
-      "今回のエラーが発生してしまった根本的な原因は何だと考えていますか？率直にお聞かせください。"
+      "先ほど、あなたの検査班で誤出荷が検知されました。エラー発生時、ご自身の状態や作業環境を含め、どのような状況で作業を進めていたか具体的に教えてください。",
+      "厳しい時間制限がある中での作業でしたが、『詳細照合ツール』による確認手順は、実際のところどの程度実行できていましたか？",
+      "今後の再発を防ぐために、今回のエラーの直接的な原因だけでなく、作業全体を通じて感じた危険な箇所やルールがあれば、教えてください。"
     ];
 
     let blinkTimer = null;
