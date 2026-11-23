@@ -39,6 +39,40 @@
     .animate-nod {
       animation: nod 0.7s ease-in-out;
     }
+    /* 虫眼鏡の柔らかな浮遊アニメーション */
+    @keyframes magnifier-float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      50% { transform: translate(-3px, -4px) rotate(-6deg) scale(1.06); }
+    }
+    .animate-magnifier {
+      animation: magnifier-float 1.8s infinite ease-in-out;
+    }
+    /* ニコニコ動画風の流し文字（ループテロップ）アニメーション */
+    @keyframes nico-marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+    .nico-marquee-track {
+      display: inline-block;
+      white-space: nowrap;
+      padding-left: 100%;
+      animation: nico-marquee var(--marquee-duration, 11s) linear infinite;
+      will-change: transform;
+    }
+    /* スポットライトハイライト枠 */
+    .coach-spotlight-gold {
+      position: relative;
+      z-index: 45 !important;
+      box-shadow: 0 0 0 3px #facc15, 0 0 24px rgba(250, 204, 21, 0.75) !important;
+      background-color: #ffffff;
+      border-radius: 0.75rem;
+    }
+    .coach-spotlight-sky {
+      position: relative;
+      z-index: 45 !important;
+      box-shadow: 0 0 0 3px #38bdf8, 0 0 24px rgba(56, 189, 248, 0.75) !important;
+      border-radius: 0.75rem;
+    }
     /* カスタムスクロールバー */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -63,51 +97,57 @@
     <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
 
       <!-- ==========================================
-           画面1: 実験設定画面 (アクセス順自動割り振り & 手動切替)
+           画面1: 実験設定画面 (アクセス順自動割り振り & 管理者用隠し切替)
            ========================================== -->
       <section id="screenSetup" class="p-4 sm:p-8 space-y-5">
-        <div class="border-b border-slate-200 pb-3 text-center">
+        <div id="setupTitleHeader" class="border-b border-slate-200 pb-3 text-center select-none cursor-pointer">
           <h1 class="text-xl sm:text-2xl font-bold text-slate-800">照合業務タスク - 実験セッション設定</h1>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">指示された被験者IDおよび割り当て条件を確認・入力してください。</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">指示された被験者IDを確認・入力し、作業ルールを音声で確認してください。</p>
         </div>
 
         <div class="space-y-4 max-w-lg mx-auto">
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">被験者ID (Participant ID)</label>
-            <input type="text" id="inputPid" value="P001" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-base">
-            <p class="text-[11px] text-slate-400 mt-1">※指示がある場合は学籍番号の下4桁などを入力してください。</p>
+            <input type="text" id="inputPid" value="P4821" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-base">
+            <p class="text-[11px] text-slate-400 mt-1">※指示がある場合は指定された番号を入力してください。</p>
           </div>
 
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-sm font-semibold text-slate-700">割り当て実験条件</label>
-              <span id="condAssignBadge" class="text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded">アクセス順で取得中...</span>
+          <!-- 通常アクセス時の自動割り当てステータス表示（誤操作防止のため選択ボタンは非表示） -->
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5">
+            <span class="text-xs font-semibold text-slate-600">セッション接続ステータス</span>
+            <span id="condAssignBadge" class="text-[11px] bg-blue-100 text-blue-700 font-semibold px-2.5 py-0.5 rounded">セッション割り当て中...</span>
+          </div>
+
+          <!-- 管理者・検証時のみ表示される実験条件手動切替パネル (?cond= / ?admin=1 / タイトル5回タップ) -->
+          <div id="adminConditionPanel" class="hidden bg-slate-50 border border-amber-300 rounded-lg p-3.5 space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="block text-xs font-bold text-amber-900">[管理者・検証用] 割り当て実験条件の切替</label>
+              <span id="adminCondCurrentBadge" class="text-[11px] bg-amber-100 text-amber-800 font-mono font-bold px-2 py-0.5 rounded">Cond: A</span>
             </div>
-            <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="A" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 A</span>
+                <span class="ml-2 font-medium text-slate-700 text-xs sm:text-sm">条件 A (動的アバター)</span>
               </label>
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+              <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="B" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 B</span>
+                <span class="ml-2 font-medium text-slate-700 text-xs sm:text-sm">条件 B (静止アバター)</span>
               </label>
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+              <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="C" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 C</span>
+                <span class="ml-2 font-medium text-slate-700 text-xs sm:text-sm">条件 C (拍動波形)</span>
               </label>
-              <label class="flex items-center p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+              <label class="flex items-center p-2.5 bg-white border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
                 <input type="radio" name="expCondition" value="D" class="text-blue-600 focus:ring-blue-500">
-                <span class="ml-2 font-medium text-slate-700 text-sm sm:text-base">条件 D</span>
+                <span class="ml-2 font-medium text-slate-700 text-xs sm:text-sm">条件 D (テキストのみ)</span>
               </label>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1">※サイトを開いた順にA➔B➔C➔Dと自動選択されます。検証時は手動で変更できます。</p>
           </div>
 
           <div class="bg-amber-50 border-l-4 border-amber-400 p-3.5 sm:p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1">
             <div class="font-bold text-sm text-amber-900 mb-1">【作業規定およびタスクルール】</div>
             <p>1. あなたは遠隔の他参加者3名と4人1組の「照合検査班」に割り当てられます。</p>
-            <p>2. <strong>チーム4名全員が3分以内に全50問をミスなく完了</strong>した場合のみ「合格」となります。</p>
+            <p>2. <strong>チーム4名全員が2分30秒（150秒）以内に全50問をミスなく完了</strong>した場合のみ「合格」となります。</p>
             <p>3. <strong>1名でも未達または誤判定（見落とし）が発生した時点で連帯責任によりチーム全員が不合格</strong>となります。</p>
             <p>4. 確実な照合のため、規定の「詳細照合ツール」を用いて1件ずつ検査を行うことが定められています。</p>
           </div>
@@ -365,9 +405,12 @@
       </section>
 
       <!-- ==========================================
-           画面2: チュートリアル画面 (練習2問 ＋ マッチング演出)
+           画面2: チュートリアル画面 (ソシャゲ風スポットライト＋練習2問＋マッチング演出)
            ========================================== -->
-      <section id="screenTutorial" class="hidden p-4 sm:p-6 space-y-4">
+      <section id="screenTutorial" class="hidden p-4 sm:p-6 space-y-4 relative">
+        <!-- スポットライトぼかし暗幕オーバーレイ（コーチマーク稼働時のみ表示） -->
+        <div id="tutCoachBackdrop" class="hidden fixed inset-0 bg-slate-900/55 backdrop-blur-sm z-40 transition-opacity duration-200"></div>
+
         <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-center justify-between text-xs shadow-sm">
           <div class="flex items-center space-x-2">
             <span class="relative flex h-2.5 w-2.5 shrink-0">
@@ -389,33 +432,78 @@
         </div>
 
         <div id="tutGuideText" class="p-3 bg-slate-50 border border-slate-200 rounded text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-          【練習1】まずは規定の「詳細照合ツール」を押してみましょう。2.5秒間の解析完了後、「承認」ボタンが押せるようになります。
+          【練習1】詳細照合ツールを使って「承認」を押してください。
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
-          <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
-            <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">発注伝票データ</span>
-            <div class="space-y-1.5">
-              <div>
-                <span class="text-[11px] text-slate-400 block">品名コード:</span>
-                <span id="tutOrderCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">AB-4821</span>
+        <!-- スポットライト対象①：左右の品名コード枠 -->
+        <div id="tutCodeGridWrapper" class="relative rounded-xl transition-all duration-200">
+          <!-- 虫眼鏡アイコン（段階1で表示） -->
+          <div id="tutMagnifier1" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+            <svg width="46" height="46" viewBox="0 0 64 64">
+              <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
+              <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="27" cy="27" r="20" fill="#e0f2fe" fill-opacity="0.85" stroke="#1e293b" stroke-width="4.5"/>
+              <circle cx="27" cy="27" r="17" fill="none" stroke="#facc15" stroke-width="2.5"/>
+              <path d="M 16 22 Q 20 14 29 14" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5 sm:gap-4">
+            <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
+              <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">発注伝票データ</span>
+              <div class="space-y-1.5">
+                <div>
+                  <span class="text-[11px] text-slate-400 block">品名コード:</span>
+                  <span id="tutOrderCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">482-1930</span>
+                </div>
+                <div class="text-[11px] sm:text-xs text-slate-600">数量: 120個 | 区分: 常温</div>
               </div>
-              <div class="text-[11px] sm:text-xs text-slate-600">数量: 120個 | 区分: 常温</div>
+            </div>
+            <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
+              <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">出荷現品データ</span>
+              <div class="space-y-1.5">
+                <div>
+                  <span class="text-[11px] text-slate-400 block">品名コード:</span>
+                  <span id="tutActualCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">482-1930</span>
+                </div>
+                <div class="text-[11px] sm:text-xs text-slate-600">数量: 120個 | 区分: 常温</div>
+              </div>
             </div>
           </div>
-          <div class="bg-slate-50 p-3 sm:p-4 rounded-lg border border-slate-200">
-            <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">出荷現品データ</span>
-            <div class="space-y-1.5">
-              <div>
-                <span class="text-[11px] text-slate-400 block">品名コード:</span>
-                <span id="tutActualCode" class="font-mono text-lg sm:text-2xl font-bold text-slate-800 tracking-wider whitespace-nowrap block">AB-4821</span>
+
+          <!-- 吹き出し①：ステップ1（左右のコード確認） -->
+          <div id="tutBubble1" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-[94%] max-w-sm bg-white border-2 border-yellow-400 rounded-2xl p-3.5 shadow-2xl z-50">
+            <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l-2 border-t-2 border-yellow-400 rotate-45"></div>
+            <div class="flex items-center space-x-2 mb-1.5">
+              <span class="bg-slate-800 text-yellow-400 text-[11px] font-bold px-2.5 py-0.5 rounded-md">ステップ 1</span>
+              <span class="text-xs sm:text-sm font-bold text-slate-900">左右の品名コードを確認</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+              まず、左側の<strong>「発注伝票データ」</strong>と右側の<strong>「出荷現品データ」</strong>に表示される<strong>品名コード（3桁-4桁の数字）</strong>を見比べて確認します。
+            </p>
+            <div class="flex items-center justify-between">
+              <button type="button" id="btnTutCoachNext1" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow transition">
+                確認
+              </button>
+              <div class="flex items-center space-x-1 text-xs font-bold text-slate-400">
+                <span class="text-blue-600 text-sm">●</span><span>●</span><span>●</span>
+                <span class="ml-1 text-[11px]">(1/3)</span>
               </div>
-              <div class="text-[11px] sm:text-xs text-slate-600">数量: 120個 | 区分: 常温</div>
             </div>
           </div>
         </div>
 
-        <div id="tutToolContainer" class="bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
+        <!-- スポットライト対象②：中央の規定検査ツール枠 -->
+        <div id="tutToolContainer" class="relative bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
+          <!-- 虫眼鏡アイコン（段階2で表示） -->
+          <div id="tutMagnifier2" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+            <svg width="46" height="46" viewBox="0 0 64 64">
+              <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
+              <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="27" cy="27" r="20" fill="#e0f2fe" fill-opacity="0.85" stroke="#1e293b" stroke-width="4.5"/>
+              <circle cx="27" cy="27" r="17" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+              <path d="M 16 22 Q 20 14 29 14" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
           <div class="flex justify-between items-center">
             <span class="text-xs font-semibold text-slate-600">規定検査ツール（自動差分チェック）</span>
             <span id="tutToolStatus" class="text-xs font-mono text-slate-500">待機中</span>
@@ -429,15 +517,71 @@
             </button>
             <div id="tutToolResult" class="text-xs font-bold text-center sm:text-right"></div>
           </div>
+
+          <!-- 吹き出し②：※ツールの案内（ステップ番号なし） -->
+          <div id="tutBubble2" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-[94%] max-w-sm bg-white border-2 border-sky-400 rounded-2xl p-3.5 shadow-2xl z-50">
+            <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l-2 border-t-2 border-sky-400 rotate-45"></div>
+            <div class="flex items-center space-x-2 mb-1.5">
+              <span class="bg-sky-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md">※ ツール案内</span>
+              <span class="text-xs sm:text-sm font-bold text-slate-900">詳細照合ツールについて</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+              ※中央には規定の<strong>「詳細照合ツール（自動差分チェック・2.5秒）」</strong>が用意されています。実行すると自動で一致・不一致を判定できます。（練習では一度お試しください）
+            </p>
+            <div class="flex items-center justify-between">
+              <button type="button" id="btnTutCoachNext2" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow transition">
+                確認
+              </button>
+              <div class="flex items-center space-x-1 text-xs font-bold text-slate-400">
+                <span>●</span><span class="text-blue-600 text-sm">●</span><span>●</span>
+                <span class="ml-1 text-[11px]">(2/3)</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-1">
-          <button id="btnTutMismatch" class="py-3.5 sm:py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
-            ✕ 不一致（差し戻し）
-          </button>
-          <button id="btnTutMatch" class="py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
-            ◯ 完全一致（承認）
-          </button>
+        <!-- スポットライト対象③：下部の判定ボタン枠 -->
+        <div id="tutJudgeGridWrapper" class="relative rounded-xl pt-1 transition-all duration-200">
+          <!-- 虫眼鏡アイコン（段階3で表示） -->
+          <div id="tutMagnifier3" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+            <svg width="46" height="46" viewBox="0 0 64 64">
+              <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
+              <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="27" cy="27" r="20" fill="#e0f2fe" fill-opacity="0.85" stroke="#1e293b" stroke-width="4.5"/>
+              <circle cx="27" cy="27" r="17" fill="none" stroke="#facc15" stroke-width="2.5"/>
+              <path d="M 16 22 Q 20 14 29 14" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+
+          <!-- 吹き出し③：ステップ2（上側に配置して下部のボタンを指す） -->
+          <div id="tutBubble3" class="hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-3.5 w-[94%] max-w-sm bg-white border-2 border-yellow-400 rounded-2xl p-3.5 shadow-2xl z-50">
+            <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-yellow-400 rotate-45"></div>
+            <div class="flex items-center space-x-2 mb-1.5">
+              <span class="bg-slate-800 text-yellow-400 text-[11px] font-bold px-2.5 py-0.5 rounded-md">ステップ 2</span>
+              <span class="text-xs sm:text-sm font-bold text-slate-900">判定ボタンを押して完了</span>
+            </div>
+            <p class="text-xs text-slate-700 leading-relaxed mb-3">
+              左右のコードが同じなら右の<strong>「◯ 完全一致（承認）」</strong>、数字が1文字でも違っていれば左の<strong>「✕ 不一致（差し戻し）」</strong>を押して次の伝票へ進みます。
+            </p>
+            <div class="flex items-center justify-between">
+              <button type="button" id="btnTutCoachDone" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow transition">
+                確認して練習開始
+              </button>
+              <div class="flex items-center space-x-1 text-xs font-bold text-slate-400">
+                <span>●</span><span>●</span><span class="text-blue-600 text-sm">●</span>
+                <span class="ml-1 text-[11px]">(3/3)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            <button id="btnTutMismatch" class="py-3.5 sm:py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
+              ✕ 不一致（差し戻し）
+            </button>
+            <button id="btnTutMatch" class="py-3.5 sm:py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm sm:text-lg transition shadow">
+              ◯ 完全一致（承認）
+            </button>
+          </div>
         </div>
 
         <div id="tutEndArea" class="hidden pt-3 border-t border-slate-200 space-y-4">
@@ -469,29 +613,29 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
               <div class="p-2.5 bg-white rounded-lg border-2 border-emerald-400 shadow-sm text-center">
                 <div class="text-[10px] text-slate-400 font-bold uppercase">あなた</div>
-                <div id="cardYouId" class="font-mono font-black text-emerald-700 text-sm sm:text-base mt-0.5">P001</div>
+                <div id="cardYouId" class="font-mono font-black text-emerald-700 text-sm sm:text-base mt-0.5">P4821</div>
                 <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 準備完了</div>
               </div>
               <div class="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
                 <div class="text-[10px] text-slate-400 font-bold uppercase">参加者 2</div>
-                <div id="cardPeer1Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P-382</div>
+                <div id="cardPeer1Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P3821</div>
                 <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 接続完了</div>
               </div>
               <div class="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
                 <div class="text-[10px] text-slate-400 font-bold uppercase">参加者 3</div>
-                <div id="cardPeer2Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P-519</div>
+                <div id="cardPeer2Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P5194</div>
                 <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 接続完了</div>
               </div>
               <div class="p-2.5 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
                 <div class="text-[10px] text-slate-400 font-bold uppercase">参加者 4</div>
-                <div id="cardPeer3Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P-104</div>
+                <div id="cardPeer3Id" class="font-mono font-bold text-slate-700 text-sm sm:text-base mt-0.5">P8420</div>
                 <div class="text-[10px] text-emerald-600 font-bold mt-0.5">● 接続完了</div>
               </div>
             </div>
 
             <div class="bg-white/80 p-3 rounded border border-emerald-200 text-xs text-emerald-900 leading-relaxed space-y-1">
               <p class="font-bold">【重要：チーム連帯責任ルールが有効化されました】</p>
-              <p>チーム4名全員が3分以内に全50問をミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。</p>
+              <p>チーム4名全員が<strong>2分30秒以内</strong>に全50問をミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。</p>
             </div>
 
             <div class="text-center pt-1">
@@ -526,14 +670,14 @@
             </div>
             
             <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-              <div><strong>あなたのID:</strong> <span id="readyPid" class="font-mono font-bold text-blue-600">P001</span> (準備完了)</div>
-              <div><strong>参加者2:</strong> <span id="readyPeer1" class="font-mono text-slate-700">P-382</span> (待機中)</div>
-              <div><strong>参加者3:</strong> <span id="readyPeer2" class="font-mono text-slate-700">P-519</span> (待機中)</div>
-              <div><strong>参加者4:</strong> <span id="readyPeer3" class="font-mono text-slate-700">P-104</span> (待機中)</div>
+              <div><strong>あなたのID:</strong> <span id="readyPid" class="font-mono font-bold text-blue-600">P4821</span> (準備完了)</div>
+              <div><strong>参加者2:</strong> <span id="readyPeer1" class="font-mono text-slate-700">P3821</span> (待機中)</div>
+              <div><strong>参加者3:</strong> <span id="readyPeer2" class="font-mono text-slate-700">P5194</span> (待機中)</div>
+              <div><strong>参加者4:</strong> <span id="readyPeer3" class="font-mono text-slate-700">P8420</span> (待機中)</div>
             </div>
 
             <div class="border-t border-slate-200 pt-2 space-y-1 text-[11px] text-slate-500">
-              <div><strong>制限時間:</strong> 180秒（3分00秒）</div>
+              <div><strong>制限時間:</strong> 150秒（2分30秒）</div>
               <div><strong>合格ノルマ:</strong> 全50問（未達・誤判定は4名連帯不合格）</div>
             </div>
           </div>
@@ -549,7 +693,7 @@
       </section>
 
       <!-- ==========================================
-           画面4: 本番データ照合タスク画面
+           画面4: 本番データ照合タスク画面 (150秒)
            ========================================== -->
       <section id="screenTask" class="hidden p-4 sm:p-6 space-y-4">
         <div class="flex flex-col items-center justify-center border-b border-slate-200 pb-3 relative">
@@ -560,7 +704,7 @@
 
           <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">残り制限時間</span>
           <div id="taskTimer" class="font-mono text-4xl sm:text-6xl font-black text-slate-800 tracking-tight my-0.5">
-            03:00
+            02:30
           </div>
           <div class="flex items-center space-x-3 text-xs font-medium text-slate-500">
             <span>進捗: <strong id="taskProgress" class="text-slate-800 font-mono text-sm">1 / 50</strong> 件</span>
@@ -677,19 +821,18 @@
 
       <!-- ==========================================
            画面6: AIReNヒアリング画面
-           ★ アバター枠がスマホ画面の約3分の1（h-[34dvh]）を占める特大レイアウト
-           ★ 上から「①アバター(画面の1/3)」「②現在の入力テキスト欄」「③チャット履歴」の順で配置
+           ★ ①エージェント枠(画面の約1/3) ＋ ②ニコニコ動画風ループ流し文字 ＋ ③入力テキスト欄 ＋ ④対話ログ
            ========================================== -->
       <section id="screenChat" class="hidden fixed inset-x-0 top-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
         <div class="w-full max-w-xl mx-auto flex flex-col justify-start p-1.5 sm:p-3 gap-1.5 h-full">
           
-          <!-- ① 1段目（スマホ画面の約3分の1を占める特大アバター枠） -->
-          <div id="avatarBoxWrapper" class="h-[34dvh] min-h-[190px] max-h-[300px] shrink-0 bg-white border-2 border-slate-200 rounded-xl p-1.5 flex items-center justify-center relative shadow-sm overflow-hidden">
+          <!-- ① 1段目（スマホ画面の約3分の1を占める特大エージェント枠） -->
+          <div id="avatarBoxWrapper" class="h-[31dvh] min-h-[175px] max-h-[280px] shrink-0 bg-white border-2 border-slate-200 rounded-xl p-1.5 flex items-center justify-center relative shadow-sm overflow-hidden">
             <span class="absolute left-3 top-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider z-10">品質管理AI「AIReN」</span>
             <span id="avatarStatusText" class="absolute right-3 top-1.5 text-[11px] font-bold text-blue-600 font-mono z-10">● 待機中</span>
             
-            <!-- 枠の高さいっぱいに広がるアバターコンテナ -->
-            <div id="avatarContainer" class="h-full aspect-square max-h-[260px] flex items-center justify-center relative pt-3">
+            <!-- 枠の高さいっぱいに広がるコンテナ -->
+            <div id="avatarContainer" class="h-full aspect-square max-h-[245px] flex items-center justify-center relative pt-3">
               <svg id="avatarSvg" class="w-full h-full" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="92" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
                 <g id="avatarBody">
@@ -716,7 +859,8 @@
                 </g>
               </svg>
 
-              <canvas id="audioWaveCanvas" width="200" height="200" class="w-full h-full hidden"></canvas>
+              <!-- 条件C: 人間の拍動（心拍・脈動）型音声波形 Canvas -->
+              <canvas id="audioWaveCanvas" width="240" height="240" class="w-full h-full hidden"></canvas>
 
               <div id="blankBox" class="hidden text-center text-sm text-slate-400 font-mono">
                 [AIReN 音声ヒアリング]
@@ -724,7 +868,17 @@
             </div>
           </div>
 
-          <!-- ② 2段目（アバターのすぐ真下に直結）: 現在の入力テキスト枠 -->
+          <!-- ② 2段目（アバター枠の直下）: ニコニコ動画風ループ流し文字（テロップ）バー -->
+          <div id="nicoTelopWrapper" class="shrink-0 bg-slate-900 text-white rounded-lg px-2.5 py-1.5 overflow-hidden relative shadow border border-slate-700 flex items-center">
+            <span id="nicoQuestionBadge" class="bg-blue-600 text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded mr-2 shrink-0 z-10">Q1/4</span>
+            <div class="overflow-hidden flex-1 relative">
+              <div id="nicoMarqueeText" class="nico-marquee-track text-xs sm:text-sm font-bold tracking-wide text-amber-200">
+                どのように作業を進めていたか教えてください。
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ 3段目（流し文字のすぐ真下に直結）: 現在の入力テキスト枠 -->
           <div id="inputBoxWrapper" class="shrink-0 bg-white border-2 border-blue-400 rounded-xl p-2 sm:p-3 space-y-1 shadow-md">
             <div class="flex items-center justify-between text-[11px]">
               <span class="font-bold text-slate-700">✏️ 現在の入力テキスト（※15文字以上）</span>
@@ -741,10 +895,10 @@
             </p>
           </div>
 
-          <!-- ③ 3段目（下部）: AIの質問文・チャット履歴 -->
+          <!-- ④ 4段目（下部）: AIの質問文・チャット履歴 -->
           <div id="chatLogWrapper" class="flex-1 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-0 flex flex-col">
             <div class="bg-slate-100 px-3 py-1 border-b border-slate-200 text-[10px] font-bold text-slate-500 shrink-0">
-              AIReNからの質問・対話ログ
+              AIReNからの質問・対話ログ（全4問）
             </div>
             <div id="chatMessages" class="flex-1 p-2.5 overflow-y-auto space-y-2 bg-slate-50">
             </div>
@@ -911,18 +1065,18 @@
   </footer>
 
   <!-- ==========================================
-       JavaScript ロジック部
+       JavaScript ロジック部 (vol.6 完全版)
        ========================================== -->
   <script>
     // ==================== 設定 & 状態管理 ====================
-    const GAS_ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwNPV0dEHjJPujLavXNXjpOdMP0gKGvTwy0_azVFuJxK85r9FKRh7S6m-8XrwoG_g_B/exec"; 
+    const GAS_ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwNPV0dEHjJPujLavXNXjpOdMP0gKGvTwy0_azVFuJxK85r9FKRh7S6m-8XrwoG_g_B/exec";
 
     let state = {
-      participantId: "P001",
+      participantId: "P4821",
       condition: "A",
       isManualCondition: false,
       teamName: "検査第3班",
-      peerIds: ["P-382", "P-519", "P-104"],
+      peerIds: ["P3821", "P5194", "P8420"],
       bigFiveResponses: {},
       bigFiveScores: {},
       taskTimeSpentSec: 0,
@@ -930,77 +1084,97 @@
       taskToolSkipCount: 0,
       taskTrapErrors: 0,
       trialLogs: [],
-      chatResponses: { q1: "", q2: "", q3: "" },
+      chatResponses: { q1: "", q2: "", q3: "", q4: "" },
       surveyResponses: { q1: "", q2: "", q3: "" },
       currentTrialIndex: 0,
       timerInterval: null,
-      timeLeft: 180,
+      timeLeft: 150,
       currentTutIndex: 0,
       tutToolUsed: false,
+      tutCoachStep: 0,
       isToolActive: false,
       chatStep: 0,
       speechSynth: window.speechSynthesis || null
     };
 
+    // 重複しない P〇〇〇〇 形式のダミー参加者IDを3名分生成
+    function generateUniquePeerIds(myPid) {
+      const used = new Set([myPid.toUpperCase()]);
+      const peers = [];
+      while (peers.length < 3) {
+        const candidate = "P" + Math.floor(1000 + Math.random() * 9000);
+        if (!used.has(candidate)) {
+          used.add(candidate);
+          peers.push(candidate);
+        }
+      }
+      return peers;
+    }
+
+    // チュートリアル設問（数字3桁-数字4桁）
     const tutorialTasks = [
-      { order: "AB-4821", actual: "AB-4821", isMatch: true, note: "【練習1】詳細照合ツールを使って「承認」を押してください。" },
-      { order: "CD-9304", actual: "CD-9384", isMatch: false, note: "【練習2】ツールで差分を確認し「差し戻し」を押してください。" }
+      { order: "482-1930", actual: "482-1930", isMatch: true, note: "【練習1】詳細照合ツールを使って「承認」を押してください。" },
+      { order: "739-2048", actual: "739-2848", isMatch: false, note: "【練習2】ツールで差分を確認し「差し戻し」を押してください。" }
     ];
 
+    // 本番50問（数字3桁-数字4桁形式）
+    // 不一致10問：
+    //   前半20問（3問）= 通常不一致2問(問4, 問17) ＋ トラップ不一致1問(問12)
+    //   後半30問（7問）= 通常不一致3問(問28, 問37, 問45) ＋ トラップ不一致4問(問24, 問33, 問42, 問48)
     const taskDataSet = [
-      { id: 1, order: "AB-1024", actual: "AB-1024", isTrap: false, isMatch: true },
-      { id: 2, order: "CD-3051", actual: "CD-3051", isTrap: false, isMatch: true },
-      { id: 3, order: "EF-9281", actual: "EF-9281", isTrap: false, isMatch: true },
-      { id: 4, order: "GH-4412", actual: "GH-4492", isTrap: false, isMatch: false },
-      { id: 5, order: "IJ-7823", actual: "IJ-7823", isTrap: false, isMatch: true },
-      { id: 6, order: "KL-6190", actual: "KL-6190", isTrap: false, isMatch: true },
-      { id: 7, order: "MN-8321", actual: "MN-8321", isTrap: false, isMatch: true },
-      { id: 8, order: "OP-2094", actual: "OP-2094", isTrap: false, isMatch: true },
-      { id: 9, order: "QR-5510", actual: "QR-5510", isTrap: false, isMatch: true },
-      { id: 10, order: "ST-7132", actual: "ST-7132", isTrap: false, isMatch: true },
-      { id: 11, order: "UV-9014", actual: "UV-9014", isTrap: false, isMatch: true },
-      { id: 12, order: "AB-4821", actual: "AB-4281", isTrap: true, isMatch: false },
-      { id: 13, order: "WX-6120", actual: "WX-6120", isTrap: false, isMatch: true },
-      { id: 14, order: "YZ-3391", actual: "YZ-3391", isTrap: false, isMatch: true },
-      { id: 15, order: "AC-5812", actual: "AC-5812", isTrap: false, isMatch: true },
-      { id: 16, order: "BD-7704", actual: "BD-7704", isTrap: false, isMatch: true },
-      { id: 17, order: "CE-2195", actual: "CE-2195", isTrap: false, isMatch: true },
-      { id: 18, order: "DF-8430", actual: "DF-8430", isTrap: false, isMatch: true },
-      { id: 19, order: "EG-1162", actual: "EG-1162", isTrap: false, isMatch: true },
-      { id: 20, order: "FH-9053", actual: "FH-9053", isTrap: false, isMatch: true },
-      { id: 21, order: "GI-4217", actual: "GI-4217", isTrap: false, isMatch: true },
-      { id: 22, order: "HJ-6839", actual: "HJ-6839", isTrap: false, isMatch: true },
-      { id: 23, order: "IK-1590", actual: "IK-1590", isTrap: false, isMatch: true },
-      { id: 24, order: "KR-3891", actual: "KR-3391", isTrap: true, isMatch: false },
-      { id: 25, order: "JL-7402", actual: "JL-7402", isTrap: false, isMatch: true },
-      { id: 26, order: "KM-2815", actual: "KM-2815", isTrap: false, isMatch: true },
-      { id: 27, order: "LN-9634", actual: "LN-9634", isTrap: false, isMatch: true },
-      { id: 28, order: "MO-5178", actual: "MO-5178", isTrap: false, isMatch: true },
-      { id: 29, order: "NP-8240", actual: "NP-8240", isTrap: false, isMatch: true },
-      { id: 30, order: "OQ-3701", actual: "OQ-3701", isTrap: false, isMatch: true },
-      { id: 31, order: "PR-6052", actual: "PR-6052", isTrap: false, isMatch: true },
-      { id: 32, order: "QS-1483", actual: "QS-1483", isTrap: false, isMatch: true },
-      { id: 33, order: "RT-9924", actual: "RT-9924", isTrap: false, isMatch: true },
-      { id: 34, order: "SU-4317", actual: "SU-4317", isTrap: false, isMatch: true },
-      { id: 35, order: "CD-6521", actual: "CD-6251", isTrap: true, isMatch: false },
-      { id: 36, order: "TV-8740", actual: "TV-8740", isTrap: false, isMatch: true },
-      { id: 37, order: "UW-2196", actual: "UW-2196", isTrap: false, isMatch: true },
-      { id: 38, order: "VX-5632", actual: "VX-5632", isTrap: false, isMatch: true },
-      { id: 39, order: "WY-9075", actual: "WY-9075", isTrap: false, isMatch: true },
-      { id: 40, order: "XZ-3418", actual: "XZ-3418", isTrap: false, isMatch: true },
-      { id: 41, order: "YA-7802", actual: "YA-7802", isTrap: false, isMatch: true },
-      { id: 42, order: "TY-7164", actual: "TY-7154", isTrap: true, isMatch: false },
-      { id: 43, order: "ZB-1249", actual: "ZB-1249", isTrap: false, isMatch: true },
-      { id: 44, order: "AC-6780", actual: "AC-6780", isTrap: false, isMatch: true },
-      { id: 45, order: "BD-2315", actual: "BD-2315", isTrap: false, isMatch: true },
-      { id: 46, order: "CE-8904", actual: "CE-8904", isTrap: false, isMatch: true },
-      { id: 47, order: "DF-4561", actual: "DF-4561", isTrap: false, isMatch: true },
-      { id: 48, order: "GH-8812", actual: "GH-8312", isTrap: true, isMatch: false },
-      { id: 49, order: "EG-9123", actual: "EG-9123", isTrap: false, isMatch: true },
-      { id: 50, order: "FH-5678", actual: "FH-5678", isTrap: false, isMatch: true }
+      { id: 1,  order: "104-8291", actual: "104-8291", isTrap: false, isMatch: true },
+      { id: 2,  order: "305-4192", actual: "305-4192", isTrap: false, isMatch: true },
+      { id: 3,  order: "928-1047", actual: "928-1047", isTrap: false, isMatch: true },
+      { id: 4,  order: "284-1950", actual: "284-7350", isTrap: false, isMatch: false }, // 通常不一致①
+      { id: 5,  order: "782-3604", actual: "782-3604", isTrap: false, isMatch: true },
+      { id: 6,  order: "619-0528", actual: "619-0528", isTrap: false, isMatch: true },
+      { id: 7,  order: "832-1940", actual: "832-1940", isTrap: false, isMatch: true },
+      { id: 8,  order: "209-4715", actual: "209-4715", isTrap: false, isMatch: true },
+      { id: 9,  order: "551-0836", actual: "551-0836", isTrap: false, isMatch: true },
+      { id: 10, order: "713-2490", actual: "713-2490", isTrap: false, isMatch: true },
+      { id: 11, order: "901-4628", actual: "901-4628", isTrap: false, isMatch: true },
+      { id: 12, order: "482-1937", actual: "482-1397", isTrap: true,  isMatch: false }, // トラップ不一致① (93 vs 39)
+      { id: 13, order: "612-0953", actual: "612-0953", isTrap: false, isMatch: true },
+      { id: 14, order: "339-1742", actual: "339-1742", isTrap: false, isMatch: true },
+      { id: 15, order: "581-2064", actual: "581-2064", isTrap: false, isMatch: true },
+      { id: 16, order: "770-4819", actual: "770-4819", isTrap: false, isMatch: true },
+      { id: 17, order: "605-3184", actual: "905-3184", isTrap: false, isMatch: false }, // 通常不一致②
+      { id: 18, order: "843-0271", actual: "843-0271", isTrap: false, isMatch: true },
+      { id: 19, order: "116-2958", actual: "116-2958", isTrap: false, isMatch: true },
+      { id: 20, order: "905-3417", actual: "905-3417", isTrap: false, isMatch: true },
+      { id: 21, order: "421-7083", actual: "421-7083", isTrap: false, isMatch: true },
+      { id: 22, order: "683-9150", actual: "683-9150", isTrap: false, isMatch: true },
+      { id: 23, order: "159-0426", actual: "159-0426", isTrap: false, isMatch: true },
+      { id: 24, order: "389-5821", actual: "389-5321", isTrap: true,  isMatch: false }, // トラップ不一致② (8 vs 3)
+      { id: 25, order: "740-2619", actual: "740-2619", isTrap: false, isMatch: true },
+      { id: 26, order: "281-5394", actual: "281-5394", isTrap: false, isMatch: true },
+      { id: 27, order: "963-4082", actual: "963-4082", isTrap: false, isMatch: true },
+      { id: 28, order: "714-2069", actual: "714-8469", isTrap: false, isMatch: false }, // 通常不一致③
+      { id: 29, order: "824-0513", actual: "824-0513", isTrap: false, isMatch: true },
+      { id: 30, order: "370-1948", actual: "370-1948", isTrap: false, isMatch: true },
+      { id: 31, order: "605-2731", actual: "605-2731", isTrap: false, isMatch: true },
+      { id: 32, order: "148-3920", actual: "148-3920", isTrap: false, isMatch: true },
+      { id: 33, order: "652-4719", actual: "652-4179", isTrap: true,  isMatch: false }, // トラップ不一致③ (71 vs 17)
+      { id: 34, order: "431-7805", actual: "431-7805", isTrap: false, isMatch: true },
+      { id: 35, order: "590-2416", actual: "590-2416", isTrap: false, isMatch: true },
+      { id: 36, order: "874-0193", actual: "874-0193", isTrap: false, isMatch: true },
+      { id: 37, order: "529-6104", actual: "529-6190", isTrap: false, isMatch: false }, // 通常不一致④
+      { id: 38, order: "563-2847", actual: "563-2847", isTrap: false, isMatch: true },
+      { id: 39, order: "907-5132", actual: "907-5132", isTrap: false, isMatch: true },
+      { id: 40, order: "341-8690", actual: "341-8690", isTrap: false, isMatch: true },
+      { id: 41, order: "780-2451", actual: "780-2451", isTrap: false, isMatch: true },
+      { id: 42, order: "716-8642", actual: "716-8542", isTrap: true,  isMatch: false }, // トラップ不一致④ (6 vs 5)
+      { id: 43, order: "124-9073", actual: "124-9073", isTrap: false, isMatch: true },
+      { id: 44, order: "678-0315", actual: "678-0315", isTrap: false, isMatch: true },
+      { id: 45, order: "843-1295", actual: "243-1295", isTrap: false, isMatch: false }, // 通常不一致⑤
+      { id: 46, order: "890-4521", actual: "890-4521", isTrap: false, isMatch: true },
+      { id: 47, order: "456-1780", actual: "456-1780", isTrap: false, isMatch: true },
+      { id: 48, order: "881-2846", actual: "881-2346", isTrap: true,  isMatch: false }, // トラップ不一致⑤ (8 vs 3)
+      { id: 49, order: "912-3604", actual: "912-3604", isTrap: false, isMatch: true },
+      { id: 50, order: "567-8192", actual: "567-8192", isTrap: false, isMatch: true }
     ];
 
-    // ★ 画面上端に固定し、キーボード出現時も「①特大アバター(画面の約1/3)」「②現在の入力テキスト」を確実に表示する制御
+    // ★ 画面上端に固定し、キーボード出現時も「①エージェント枠」「②流し文字バー」「③現在の入力テキスト」を確実に同時表示する制御
     let isCurrentlyTyping = false;
 
     function lockChatScreenToTop() {
@@ -1015,11 +1189,13 @@
       chatScreen.style.height = `${vvHeight}px`;
 
       const avatarBox = document.getElementById('avatarBoxWrapper');
+      const telopBox = document.getElementById('nicoTelopWrapper');
       const inputBox = document.getElementById('inputBoxWrapper');
       if (avatarBox && inputBox) {
         if (isCurrentlyTyping) {
-          const inputHeight = inputBox.offsetHeight || 105;
-          const availableForAvatar = Math.max(150, vvHeight - inputHeight - 20);
+          const telopHeight = telopBox ? telopBox.offsetHeight : 32;
+          const inputHeight = inputBox.offsetHeight || 100;
+          const availableForAvatar = Math.max(125, vvHeight - telopHeight - inputHeight - 24);
           avatarBox.style.height = `${availableForAvatar}px`;
         } else {
           avatarBox.style.height = '';
@@ -1048,10 +1224,29 @@
       setTimeout(lockChatScreenToTop, 300);
     }
 
+    // ニコニコ動画風の流し文字（ループテロップ）更新・再生開始
+    function updateNicoTelop(stepIndex, text) {
+      const badge = document.getElementById('nicoQuestionBadge');
+      const track = document.getElementById('nicoMarqueeText');
+      if (!badge || !track) return;
+
+      badge.textContent = `Q${stepIndex + 1}/4`;
+      track.textContent = text;
+
+      // 文字数に応じて流れる速度（1文字あたり約0.26秒、最低8.5秒）を自然に設定
+      const durationSec = Math.max(8.5, text.length * 0.26);
+      track.style.setProperty('--marquee-duration', `${durationSec}s`);
+
+      // アニメーションを先頭（右端）から再スタート
+      track.style.animation = 'none';
+      void track.offsetWidth;
+      track.style.animation = '';
+    }
+
     function showScreen(screenId) {
       const screens = [
-        'screenSetup', 'screenBigFive', 'screenTutorial', 'screenReady', 
-        'screenTask', 'screenAlert', 'screenChat', 
+        'screenSetup', 'screenBigFive', 'screenTutorial', 'screenReady',
+        'screenTask', 'screenAlert', 'screenChat',
         'screenSurvey', 'screenComplete'
       ];
       screens.forEach(id => {
@@ -1070,7 +1265,7 @@
       }
 
       const info = document.getElementById('sessionHeaderInfo');
-      if (info) info.textContent = `ID: ${state.participantId} | Cond: ${state.condition}`;
+      if (info) info.textContent = `ID: ${state.participantId}`;
     }
 
     function bindEvent(id, eventType, handler) {
@@ -1099,10 +1294,11 @@
       requestAnimationFrame(update);
     }
 
-    // ==================== スマホ対応 音声エンジン & 口パク連動制御 ====================
+    // ==================== スマホ対応 音声エンジン & 口パク・拍動波形連動制御 ====================
     let isAudioUnlocked = false;
     let mouthAnimInterval = null;
     let waveActive = false;
+    let waveAckPulseTime = 0; // 条件C：回答送信時の受容拍動トリガー時刻
 
     function unlockAudioOnFirstTouch() {
       if (isAudioUnlocked || !window.speechSynthesis) return;
@@ -1207,34 +1403,53 @@
     window.addEventListener('DOMContentLoaded', () => {
       const randomTeamNum = Math.floor(2 + Math.random() * 7);
       state.teamName = `検査第${randomTeamNum}班`;
-      state.peerIds = [
-        "P-" + Math.floor(100 + Math.random() * 400),
-        "P-" + Math.floor(500 + Math.random() * 300),
-        "P-" + Math.floor(800 + Math.random() * 190)
-      ];
 
       const conditions = ['A', 'B', 'C', 'D'];
       const params = new URLSearchParams(window.location.search);
 
-      function applyConditionRadio(cond, badgeText, badgeClass) {
+      function revealAdminPanel() {
+        const panel = document.getElementById('adminConditionPanel');
+        if (panel) panel.classList.remove('hidden');
+      }
+
+      function applyConditionRadio(cond, publicBadgeText, publicBadgeClass, adminBadgeText) {
         state.condition = cond;
         const radio = document.querySelector(`input[name="expCondition"][value="${cond}"]`);
         if (radio) radio.checked = true;
         const badge = document.getElementById('condAssignBadge');
         if (badge) {
-          badge.textContent = badgeText;
-          if (badgeClass) badge.className = badgeClass;
+          badge.textContent = publicBadgeText;
+          if (publicBadgeClass) badge.className = publicBadgeClass;
         }
+        const adminBadge = document.getElementById('adminCondCurrentBadge');
+        if (adminBadge) {
+          adminBadge.textContent = adminBadgeText || `Cond: ${cond}`;
+        }
+      }
+
+      if (params.get('admin') === '1') {
+        revealAdminPanel();
       }
 
       if (params.get('cond') && conditions.includes(params.get('cond').toUpperCase())) {
         const urlCond = params.get('cond').toUpperCase();
-        applyConditionRadio(urlCond, `URL指定: 条件${urlCond}`, "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded");
+        revealAdminPanel();
+        applyConditionRadio(
+          urlCond,
+          `✓ 検証セッション準備完了 (Cond:${urlCond})`,
+          "text-[11px] bg-amber-100 text-amber-800 font-semibold px-2.5 py-0.5 rounded",
+          `URL指定: 条件${urlCond}`
+        );
       } else {
-        const localSeq = (parseInt(localStorage.getItem('airen_local_seq') || '0', 10));
+        const localSeq = parseInt(localStorage.getItem('airen_local_seq') || '0', 10);
         localStorage.setItem('airen_local_seq', (localSeq + 1).toString());
         const fallbackCond = conditions[localSeq % 4];
-        applyConditionRadio(fallbackCond, `アクセス順取得中... (仮:条件${fallbackCond})`, "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded");
+        applyConditionRadio(
+          fallbackCond,
+          "セッション接続中...",
+          "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2.5 py-0.5 rounded",
+          `仮割当: 条件${fallbackCond}`
+        );
 
         fetch(`${GAS_ENDPOINT_URL}?action=assign`, { method: 'GET' })
           .then(res => res.json())
@@ -1242,8 +1457,9 @@
             if (!state.isManualCondition && data && data.condition && conditions.includes(data.condition)) {
               applyConditionRadio(
                 data.condition,
-                `アクセス順自動割当: 条件${data.condition}`,
-                "text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded"
+                "✓ 検査サーバー接続完了",
+                "text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded",
+                `自動割当: 条件${data.condition}`
               );
             }
           })
@@ -1251,20 +1467,34 @@
             if (!state.isManualCondition) {
               applyConditionRadio(
                 fallbackCond,
-                `自動割当: 条件${fallbackCond}`,
-                "text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded"
+                "✓ 検査サーバー接続完了",
+                "text-[11px] bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded",
+                `ローカル割当: 条件${fallbackCond}`
               );
             }
           });
       }
+
+      // 画面1タイトル部の隠し連続タップ（5回）で管理者用切替パネルを表示
+      let adminTapCount = 0;
+      bindEvent('setupTitleHeader', 'click', () => {
+        adminTapCount++;
+        if (adminTapCount >= 5) {
+          revealAdminPanel();
+        }
+      });
 
       document.querySelectorAll('input[name="expCondition"]').forEach(radio => {
         radio.addEventListener('change', (e) => {
           state.isManualCondition = true;
           state.condition = e.target.value;
           const badge = document.getElementById('condAssignBadge');
-          badge.textContent = `手動変更済み: 条件${e.target.value}`;
-          badge.className = "text-[11px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded";
+          if (badge) {
+            badge.textContent = `✓ 手動切替済み (Cond:${e.target.value})`;
+            badge.className = "text-[11px] bg-amber-100 text-amber-800 font-semibold px-2.5 py-0.5 rounded";
+          }
+          const adminBadge = document.getElementById('adminCondCurrentBadge');
+          if (adminBadge) adminBadge.textContent = `手動: 条件${e.target.value}`;
         });
       });
 
@@ -1282,24 +1512,25 @@
         btn.classList.add('opacity-60');
         status.textContent = '🔊 ルールを読み上げ中...';
 
-        const ruleSpeech = "作業規定およびタスクルールをご案内します。あなたは遠隔の参加者と4人1組の検査班に割り当てられます。制限時間は3分間、全50問です。チーム4名全員が時間内にミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。確実な照合のため、規定の詳細照合ツールを用いて検査を行ってください。";
+        const ruleSpeech = "作業規定およびタスクルールをご案内します。あなたは遠隔の参加者と4人1組の検査班に割り当てられます。制限時間は2分30秒、全50問です。チーム4名全員が時間内にミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。確実な照合のため、規定の詳細照合ツールを用いて検査を行ってください。";
         speakText(ruleSpeech, () => {
           status.textContent = '✓ 読み上げ完了：事前アンケートへ進んでください。';
           status.classList.add('text-emerald-600', 'font-bold');
-          const toTut = document.getElementById('btnToBigFive');
-          if (toTut) {
-            toTut.disabled = false;
-            toTut.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-            toTut.classList.add('bg-blue-600', 'hover:bg-blue-700', 'text-white', 'shadow');
+          const toBf = document.getElementById('btnToBigFive');
+          if (toBf) {
+            toBf.disabled = false;
+            toBf.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+            toBf.classList.add('bg-blue-600', 'hover:bg-blue-700', 'text-white', 'shadow');
           }
         }, false);
       });
 
       // 画面1のボタンから画面1.5（BIGFIVEアンケート）へ遷移
       bindEvent('btnToBigFive', 'click', () => {
-        state.participantId = document.getElementById('inputPid').value.trim() || 'P001';
+        state.participantId = document.getElementById('inputPid').value.trim() || 'P4821';
+        state.peerIds = generateUniquePeerIds(state.participantId);
         const checkedCond = document.querySelector('input[name="expCondition"]:checked');
-        state.condition = checkedCond ? checkedCond.value : 'A';
+        state.condition = checkedCond ? checkedCond.value : state.condition;
         showScreen('screenBigFive');
       });
 
@@ -1308,6 +1539,11 @@
       if (formBigFive) {
         formBigFive.addEventListener('submit', handleBigFiveSubmit);
       }
+
+      // チュートリアル内の3段階コーチマーク進行ボタン
+      bindEvent('btnTutCoachNext1', 'click', () => setTutorialCoachStep(2));
+      bindEvent('btnTutCoachNext2', 'click', () => setTutorialCoachStep(3));
+      bindEvent('btnTutCoachDone', 'click', () => setTutorialCoachStep(0));
 
       bindEvent('btnFinishTutorial', 'click', () => {
         document.getElementById('readyPid').textContent = state.participantId;
@@ -1320,7 +1556,7 @@
       });
 
       bindEvent('btnRestartTutorial', 'click', () => {
-        startTutorial();
+        startTutorial(false); // 2回目以降はコーチマークを再表示せず練習から開始
       });
 
       bindEvent('btnStartMainTask', 'click', () => {
@@ -1401,19 +1637,71 @@
         openness: (raw.q5 + (8 - raw.q10)) / 2           // 開放性
       };
 
-      startTutorial();
+      startTutorial(true);
     }
 
-    // ==================== チュートリアル制御 ====================
-    function startTutorial() {
+    // ==================== チュートリアル制御（ソシャゲ風スポットライト＋練習2問） ====================
+    function setTutorialCoachStep(step) {
+      state.tutCoachStep = step;
+      const backdrop = document.getElementById('tutCoachBackdrop');
+      const codeWrap = document.getElementById('tutCodeGridWrapper');
+      const toolWrap = document.getElementById('tutToolContainer');
+      const judgeWrap = document.getElementById('tutJudgeGridWrapper');
+
+      const mag1 = document.getElementById('tutMagnifier1');
+      const mag2 = document.getElementById('tutMagnifier2');
+      const mag3 = document.getElementById('tutMagnifier3');
+
+      const bub1 = document.getElementById('tutBubble1');
+      const bub2 = document.getElementById('tutBubble2');
+      const bub3 = document.getElementById('tutBubble3');
+
+      // いったんすべてリセット
+      [codeWrap, toolWrap, judgeWrap].forEach(el => {
+        if (el) el.classList.remove('coach-spotlight-gold', 'coach-spotlight-sky');
+      });
+      [mag1, mag2, mag3, bub1, bub2, bub3].forEach(el => {
+        if (el) el.classList.add('hidden');
+      });
+
+      if (step === 0) {
+        if (backdrop) backdrop.classList.add('hidden');
+        return;
+      }
+
+      if (backdrop) backdrop.classList.remove('hidden');
+
+      if (step === 1) {
+        codeWrap.classList.add('coach-spotlight-gold');
+        mag1.classList.remove('hidden');
+        bub1.classList.remove('hidden');
+      } else if (step === 2) {
+        toolWrap.classList.add('coach-spotlight-sky');
+        mag2.classList.remove('hidden');
+        bub2.classList.remove('hidden');
+      } else if (step === 3) {
+        judgeWrap.classList.add('coach-spotlight-gold');
+        mag3.classList.remove('hidden');
+        bub3.classList.remove('hidden');
+      }
+    }
+
+    function startTutorial(showCoachMarks = true) {
       state.currentTutIndex = 0;
       state.tutToolUsed = false;
       document.getElementById('tutMatchingCount').textContent = "待機者を探索中... (1/4名)";
+      document.getElementById('tutMatchingCount').className = "font-mono font-bold text-amber-700 truncate";
       document.getElementById('tutEndArea').classList.add('hidden');
       document.getElementById('matchingLoadingBox').classList.remove('hidden');
       document.getElementById('matchingCompleteBox').classList.add('hidden');
       showScreen('screenTutorial');
       loadTutorialQuestion();
+
+      if (showCoachMarks) {
+        setTutorialCoachStep(1);
+      } else {
+        setTutorialCoachStep(0);
+      }
     }
 
     function loadTutorialQuestion() {
@@ -1424,7 +1712,7 @@
       document.getElementById('tutGuideText').textContent = q.note;
 
       const tutBox = document.getElementById('tutToolContainer');
-      tutBox.className = "bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
+      tutBox.className = "relative bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300";
 
       state.tutToolUsed = false;
       document.getElementById('tutToolStatus').textContent = '待機中';
@@ -1441,7 +1729,7 @@
       document.getElementById('tutToolStatus').textContent = '照合解析中... (2.5秒)';
 
       const tutBox = document.getElementById('tutToolContainer');
-      tutBox.className = "bg-blue-50/70 p-3.5 sm:p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
+      tutBox.className = "relative bg-blue-50/70 p-3.5 sm:p-4 rounded-lg border-2 border-blue-400 space-y-2 transition-all duration-300";
 
       const pBar = document.getElementById('tutToolProgress');
       animateProgressBar(pBar, 2500, () => {
@@ -1453,11 +1741,11 @@
         if (q.isMatch) {
           res.textContent = '【判定：完全一致 (安全)】';
           res.className = 'text-xs font-bold text-emerald-600 text-center sm:text-right';
-          tutBox.className = "bg-emerald-50 p-3.5 sm:p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
+          tutBox.className = "relative bg-emerald-50 p-3.5 sm:p-4 rounded-lg border-2 border-emerald-500 ring-2 ring-emerald-200 space-y-2 transition-all duration-300";
         } else {
           res.textContent = '【判定：不一致検知 (差分あり)】';
           res.className = 'text-xs font-bold text-rose-600 text-center sm:text-right';
-          tutBox.className = "bg-rose-50 p-3.5 sm:p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
+          tutBox.className = "relative bg-rose-50 p-3.5 sm:p-4 rounded-lg border-2 border-rose-500 ring-2 ring-rose-200 space-y-2 transition-all duration-300";
         }
 
         document.getElementById('btnTutMatch').disabled = false;
@@ -1501,7 +1789,7 @@
       }
     }
 
-    // ==================== 本番タスク制御 ====================
+    // ==================== 本番タスク制御 (150秒) ====================
     let trialStartTime = 0;
 
     function startMainTask() {
@@ -1510,7 +1798,11 @@
       state.taskToolSkipCount = 0;
       state.taskTrapErrors = 0;
       state.trialLogs = [];
-      state.timeLeft = 180;
+      state.timeLeft = 150;
+
+      const timerEl = document.getElementById('taskTimer');
+      timerEl.textContent = "02:30";
+      timerEl.classList.remove('text-rose-600');
 
       showScreen('screenTask');
       loadTaskTrial();
@@ -1521,7 +1813,6 @@
 
         const m = Math.floor(state.timeLeft / 60);
         const s = state.timeLeft % 60;
-        const timerEl = document.getElementById('taskTimer');
         timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
         if (state.timeLeft <= 60) {
@@ -1667,16 +1958,17 @@
       } else {
         const row = document.createElement('div');
         row.className = 'text-rose-600 py-1 font-bold';
-        row.textContent = `問12: 発注[AB-4821] 現品[AB-4281] → 照合見落としによる誤出荷を検知`;
+        row.textContent = `問12: 発注[482-1937] 現品[482-1397] → 照合見落としによる誤出荷を検知`;
         listEl.appendChild(row);
       }
     }
 
-    // ==================== AIReN ヒアリング対話 ====================
+    // ==================== AIReN ヒアリング対話（全4問 ＋ 流し文字 ＋ 拍動波形） ====================
     const chatQuestions = [
-      "先ほど、あなたの検査班で誤出荷が検知されました。エラー発生時、ご自身の状態や作業環境を含め、どのような状況で作業を進めていたか具体的に教えてください。",
-      "厳しい時間制限がある中での作業でしたが、『詳細照合ツール』による確認手順は、実際のところどの程度実行できていましたか？",
-      "今後の再発を防ぐために、今回のエラーの直接的な原因だけでなく、作業全体を通じて感じた危険な箇所やルールがあれば、教えてください。"
+      "どのように作業を進めていたか教えてください。",
+      "何がエラーの原因だと思いますか？",
+      "『詳細照合ツール』はどの程度使用しましたか。また、そうなった理由も教えてください。",
+      "今後の再発を防ぐために、今回のエラーの直接的な原因だけでなく、作業全体を通じて『ミスが起きやすい（手抜きをしそう）』と感じた箇所やルールがあれば教えてください。"
     ];
 
     let blinkTimer = null;
@@ -1741,6 +2033,7 @@
 
       const qText = chatQuestions[state.chatStep];
       appendChatMessage('airen', qText);
+      updateNicoTelop(state.chatStep, qText);
 
       document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
 
@@ -1749,25 +2042,118 @@
       }, true);
     }
 
+    // 条件C: 人間の拍動（心拍・脈動）と多層ウェーブを組み合わせた有機的ビジュアライザー
     function initAudioVisualizer() {
       const canvas = document.getElementById('audioWaveCanvas');
       const ctx = canvas.getContext('2d');
-      let angle = 0;
-      function render() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.beginPath();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = waveActive ? '#2563eb' : '#94a3b8';
-        for (let x = 0; x < canvas.width; x++) {
-          const amp = waveActive ? 32 : 5;
-          const y = canvas.height / 2 + Math.sin(x * 0.05 + angle) * amp;
-          if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      let phase = 0;
+
+      function render(now) {
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        ctx.clearRect(0, 0, w, h);
+
+        // 1. 心拍リズム計算（約66BPM = 910ms周期のドクン・ドクン二段拍動）
+        const beatPeriod = waveActive ? 680 : 920;
+        const t = (now % beatPeriod) / beatPeriod;
+        const beat1 = Math.exp(-Math.pow((t - 0.14) / 0.055, 2));
+        const beat2 = 0.58 * Math.exp(-Math.pow((t - 0.30) / 0.065, 2));
+        let heartbeat = beat1 + beat2;
+
+        // 回答送信時の受容拍動（700ms間ふんわり広がって落ち着く）
+        let ackRatio = 0;
+        if (waveAckPulseTime > 0) {
+          const dt = now - waveAckPulseTime;
+          if (dt < 750) {
+            ackRatio = Math.sin((dt / 750) * Math.PI);
+          } else {
+            waveAckPulseTime = 0;
+          }
         }
+
+        // 2. 背景の柔らかな拍動ハロー（発光オーラ）
+        const baseRadius = 42 + heartbeat * (waveActive ? 16 : 9) + ackRatio * 22;
+        const haloGrad = ctx.createRadialGradient(cx, cy, baseRadius * 0.25, cx, cy, baseRadius * 1.9);
+        if (ackRatio > 0.05) {
+          haloGrad.addColorStop(0, `rgba(16, 185, 129, ${0.35 + ackRatio * 0.25})`);
+          haloGrad.addColorStop(0.6, `rgba(59, 130, 246, 0.14)`);
+          haloGrad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        } else if (waveActive) {
+          haloGrad.addColorStop(0, `rgba(37, 99, 235, ${0.32 + heartbeat * 0.2})`);
+          haloGrad.addColorStop(0.65, 'rgba(56, 189, 248, 0.14)');
+          haloGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+        } else {
+          haloGrad.addColorStop(0, `rgba(59, 130, 246, ${0.18 + heartbeat * 0.16})`);
+          haloGrad.addColorStop(0.65, 'rgba(148, 163, 184, 0.08)');
+          haloGrad.addColorStop(1, 'rgba(148, 163, 184, 0)');
+        }
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, baseRadius * 1.9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3. 拍動に合わせて広がる波紋リング
+        const ringRadius = 36 + (t * 68) + ackRatio * 20;
+        const ringAlpha = Math.max(0, (1 - t) * (waveActive ? 0.42 : 0.26));
+        ctx.beginPath();
+        ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = ackRatio > 0.05
+          ? `rgba(16, 185, 129, ${ringAlpha + 0.2})`
+          : `rgba(37, 99, 235, ${ringAlpha})`;
+        ctx.lineWidth = 2.2;
         ctx.stroke();
-        angle += waveActive ? 0.22 : 0.04;
+
+        // 4. 多層ウェーブ（両端が自然に減衰する有機的な音声・脈動波形）
+        const layers = [
+          { ampScale: 1.0,  freq: 0.042, speed: 1.0,  width: 3.6, alpha: 0.92 },
+          { ampScale: 0.72, freq: 0.058, speed: -0.75, width: 2.5, alpha: 0.55 },
+          { ampScale: 0.48, freq: 0.028, speed: 0.55, width: 2.0, alpha: 0.35 }
+        ];
+
+        layers.forEach((layer, idx) => {
+          ctx.beginPath();
+          ctx.lineWidth = layer.width;
+          if (ackRatio > 0.05) {
+            ctx.strokeStyle = `rgba(16, 185, 129, ${layer.alpha})`;
+          } else if (waveActive) {
+            ctx.strokeStyle = idx === 0 ? `rgba(37, 99, 235, ${layer.alpha})` : `rgba(14, 165, 233, ${layer.alpha})`;
+          } else {
+            ctx.strokeStyle = `rgba(71, 85, 105, ${layer.alpha * 0.85})`;
+          }
+
+          const margin = 18;
+          const span = w - margin * 2;
+          for (let i = 0; i <= span; i += 2) {
+            const x = margin + i;
+            const norm = i / span; // 0..1
+            const envelope = Math.sin(norm * Math.PI); // 両端を0に収束させる窓関数
+            const speechMod = waveActive ? (0.75 + 0.35 * Math.sin(now * 0.011 + idx)) : 1.0;
+            const baseAmp = waveActive ? 34 : (7 + heartbeat * 13);
+            const amp = (baseAmp + ackRatio * 14) * layer.ampScale * envelope * speechMod;
+
+            const y = cy
+              + Math.sin(i * layer.freq + phase * layer.speed + idx * 1.3) * amp
+              + Math.sin(i * layer.freq * 1.9 - phase * 0.6) * (amp * 0.25);
+
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
+
+        // 5. 中心の拍動コア（小さな心臓のように脈打つ核）
+        const coreR = 7 + heartbeat * (waveActive ? 5.5 : 3.8) + ackRatio * 5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+        ctx.fillStyle = ackRatio > 0.05 ? '#10b981' : (waveActive ? '#2563eb' : '#64748b');
+        ctx.fill();
+
+        phase += waveActive ? 0.19 : 0.055;
         requestAnimationFrame(render);
       }
-      render();
+      requestAnimationFrame(render);
     }
 
     function appendChatMessage(sender, text) {
@@ -1794,16 +2180,20 @@
         return;
       }
 
+      // 条件A：頷き動作 ／ 条件C：受容拍動リアクション（動的FBの対等化）
       if (state.condition === 'A') {
         const head = document.getElementById('avatarHead');
         head.classList.add('animate-nod');
         setTimeout(() => head.classList.remove('animate-nod'), 700);
+      } else if (state.condition === 'C') {
+        waveAckPulseTime = performance.now();
       }
 
       appendChatMessage('user', text);
       if (state.chatStep === 0) state.chatResponses.q1 = text;
       if (state.chatStep === 1) state.chatResponses.q2 = text;
       if (state.chatStep === 2) state.chatResponses.q3 = text;
+      if (state.chatStep === 3) state.chatResponses.q4 = text;
 
       input.value = '';
       document.getElementById('charCount').textContent = '0 / 15 文字';
@@ -1870,15 +2260,18 @@
     function exportDataAsCSV() {
       const bfS = state.bigFiveScores || {};
       const bfR = state.bigFiveResponses || {};
-      let csv = "\uFEFF";
-      csv += "=== PARTICIPANT SUMMARY ===\n";
-      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10\n";
-      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${state.chatResponses.q1.replace(/"/g, '""')}","${state.chatResponses.q2.replace(/"/g, '""')}","${state.chatResponses.q3.replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}\n\n`;
+      let csv = "﻿";
+      csv += "=== PARTICIPANT SUMMARY ===";
+      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Chat_Q4,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10";
+      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${(state.chatResponses.q1 || "").replace(/"/g, '""')}","${(state.chatResponses.q2 || "").replace(/"/g, '""')}","${(state.chatResponses.q3 || "").replace(/"/g, '""')}","${(state.chatResponses.q4 || "").replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}
 
-      csv += "=== TRIAL LOGS ===\n";
-      csv += "TrialNumber,OrderCode,ActualCode,IsTrap,ToolUsed,UserDecision,IsCorrect,ResponseTime_ms\n";
+`;
+
+      csv += "=== TRIAL LOGS ===";
+      csv += "TrialNumber,OrderCode,ActualCode,IsTrap,ToolUsed,UserDecision,IsCorrect,ResponseTime_ms";
       state.trialLogs.forEach(t => {
-        csv += `${t.trialNumber},"${t.itemCodeOrder}","${t.itemCodeActual}",${t.isTrap},${t.toolUsed},"${t.userDecision}",${t.isCorrect},${t.responseTimeMs}\n`;
+        csv += `${t.trialNumber},"${t.itemCodeOrder}","${t.itemCodeActual}",${t.isTrap},${t.toolUsed},"${t.userDecision}",${t.isCorrect},${t.responseTimeMs}
+`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
