@@ -94,7 +94,7 @@
 
   <!-- メインコンテンツ領域 -->
   <main id="appMain" class="flex-grow flex items-center justify-center p-2 sm:p-4">
-    <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200">
 
       <!-- ==========================================
            画面1: 実験設定画面 (アクセス順自動割り振り & 管理者用隠し切替)
@@ -438,7 +438,7 @@
         <!-- スポットライト対象①：左右の品名コード枠 -->
         <div id="tutCodeGridWrapper" class="relative rounded-xl transition-all duration-200">
           <!-- 虫眼鏡アイコン（段階1で表示） -->
-          <div id="tutMagnifier1" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+          <div id="tutMagnifier1" class="hidden absolute -top-5 right-1 z-50 pointer-events-none animate-magnifier drop-shadow-md">
             <svg width="46" height="46" viewBox="0 0 64 64">
               <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
               <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
@@ -495,7 +495,7 @@
         <!-- スポットライト対象②：中央の規定検査ツール枠 -->
         <div id="tutToolContainer" class="relative bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <!-- 虫眼鏡アイコン（段階2で表示） -->
-          <div id="tutMagnifier2" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+          <div id="tutMagnifier2" class="hidden absolute -top-5 right-1 z-50 pointer-events-none animate-magnifier drop-shadow-md">
             <svg width="46" height="46" viewBox="0 0 64 64">
               <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
               <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
@@ -518,9 +518,9 @@
             <div id="tutToolResult" class="text-xs font-bold text-center sm:text-right"></div>
           </div>
 
-          <!-- 吹き出し②：※ツールの案内（ステップ番号なし） -->
-          <div id="tutBubble2" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-[94%] max-w-sm bg-white border-2 border-sky-400 rounded-2xl p-3.5 shadow-2xl z-50">
-            <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l-2 border-t-2 border-sky-400 rotate-45"></div>
+          <!-- 吹き出し②：※ツールの案内（ステップ番号なし・見切れ防止のためツール枠の上側へ配置） -->
+          <div id="tutBubble2" class="hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-3.5 w-[94%] max-w-sm bg-white border-2 border-sky-400 rounded-2xl p-3.5 shadow-2xl z-50">
+            <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-sky-400 rotate-45"></div>
             <div class="flex items-center space-x-2 mb-1.5">
               <span class="bg-sky-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md">※ ツール案内</span>
               <span class="text-xs sm:text-sm font-bold text-slate-900">詳細照合ツールについて</span>
@@ -543,7 +543,7 @@
         <!-- スポットライト対象③：下部の判定ボタン枠 -->
         <div id="tutJudgeGridWrapper" class="relative rounded-xl pt-1 transition-all duration-200">
           <!-- 虫眼鏡アイコン（段階3で表示） -->
-          <div id="tutMagnifier3" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+          <div id="tutMagnifier3" class="hidden absolute -top-5 right-1 z-50 pointer-events-none animate-magnifier drop-shadow-md">
             <svg width="46" height="46" viewBox="0 0 64 64">
               <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
               <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
@@ -1671,18 +1671,28 @@
 
       if (backdrop) backdrop.classList.remove('hidden');
 
+      let activeBubble = null;
       if (step === 1) {
         codeWrap.classList.add('coach-spotlight-gold');
         mag1.classList.remove('hidden');
         bub1.classList.remove('hidden');
+        activeBubble = bub1;
       } else if (step === 2) {
         toolWrap.classList.add('coach-spotlight-sky');
         mag2.classList.remove('hidden');
         bub2.classList.remove('hidden');
+        activeBubble = bub2;
       } else if (step === 3) {
         judgeWrap.classList.add('coach-spotlight-gold');
         mag3.classList.remove('hidden');
         bub3.classList.remove('hidden');
+        activeBubble = bub3;
+      }
+
+      if (activeBubble) {
+        setTimeout(() => {
+          activeBubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 50);
       }
     }
 
@@ -1724,6 +1734,7 @@
     }
 
     function runTutorialTool() {
+      if (state.tutCoachStep > 0) return;
       const btn = document.getElementById('btnTutTool');
       btn.disabled = true;
       document.getElementById('tutToolStatus').textContent = '照合解析中... (2.5秒)';
@@ -1754,6 +1765,7 @@
     }
 
     function handleTutorialAnswer(userDecision) {
+      if (state.tutCoachStep > 0) return;
       state.currentTutIndex++;
       if (state.currentTutIndex < tutorialTasks.length) {
         document.getElementById('tutMatchingCount').textContent = "待機者を検知: 3/4名接続中...";
@@ -2260,18 +2272,15 @@
     function exportDataAsCSV() {
       const bfS = state.bigFiveScores || {};
       const bfR = state.bigFiveResponses || {};
-      let csv = "﻿";
-      csv += "=== PARTICIPANT SUMMARY ===";
-      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Chat_Q4,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10";
-      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${(state.chatResponses.q1 || "").replace(/"/g, '""')}","${(state.chatResponses.q2 || "").replace(/"/g, '""')}","${(state.chatResponses.q3 || "").replace(/"/g, '""')}","${(state.chatResponses.q4 || "").replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}
+      let csv = "\uFEFF";
+      csv += "=== PARTICIPANT SUMMARY ===\n";
+      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Chat_Q4,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10\n";
+      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${(state.chatResponses.q1 || "").replace(/"/g, '""')}","${(state.chatResponses.q2 || "").replace(/"/g, '""')}","${(state.chatResponses.q3 || "").replace(/"/g, '""')}","${(state.chatResponses.q4 || "").replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}\n\n`;
 
-`;
-
-      csv += "=== TRIAL LOGS ===";
-      csv += "TrialNumber,OrderCode,ActualCode,IsTrap,ToolUsed,UserDecision,IsCorrect,ResponseTime_ms";
+      csv += "=== TRIAL LOGS ===\n";
+      csv += "TrialNumber,OrderCode,ActualCode,IsTrap,ToolUsed,UserDecision,IsCorrect,ResponseTime_ms\n";
       state.trialLogs.forEach(t => {
-        csv += `${t.trialNumber},"${t.itemCodeOrder}","${t.itemCodeActual}",${t.isTrap},${t.toolUsed},"${t.userDecision}",${t.isCorrect},${t.responseTimeMs}
-`;
+        csv += `${t.trialNumber},"${t.itemCodeOrder}","${t.itemCodeActual}",${t.isTrap},${t.toolUsed},"${t.userDecision}",${t.isCorrect},${t.responseTimeMs}\n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
