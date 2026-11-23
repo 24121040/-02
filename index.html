@@ -1085,7 +1085,7 @@
   </footer>
 
   <!-- ==========================================
-       JavaScript ロジック部 (vol.7 完全版)
+       JavaScript ロジック部 (vol.8 完全版)
        ========================================== -->
   <script>
     // ==================== 設定 & 状態管理 ====================
@@ -1102,7 +1102,9 @@
       taskTimeSpentSec: 0,
       taskTotalAnswered: 0,
       taskToolSkipCount: 0,
+      taskNormalMismatchErrors: 0,
       taskTrapErrors: 0,
+      taskTotalMismatchErrors: 0,
       trialLogs: [],
       chatResponses: { q1: "", q2: "", q3: "", q4: "" },
       surveyResponses: { q1: "", q2: "", q3: "" },
@@ -1888,7 +1890,9 @@
       state.currentTrialIndex = 0;
       state.taskTimeSpentSec = 0;
       state.taskToolSkipCount = 0;
+      state.taskNormalMismatchErrors = 0;
       state.taskTrapErrors = 0;
+      state.taskTotalMismatchErrors = 0;
       state.trialLogs = [];
       state.timeLeft = 150;
 
@@ -1987,12 +1991,24 @@
       const isCorrect = (userDecisionIsMatch === trial.isMatch);
 
       if (!state.isToolActive) state.taskToolSkipCount++;
-      if (trial.isTrap && !isCorrect) state.taskTrapErrors++;
+      if (!trial.isMatch && !isCorrect) {
+        if (trial.isTrap) {
+          state.taskTrapErrors++;
+        } else {
+          state.taskNormalMismatchErrors++;
+        }
+        state.taskTotalMismatchErrors = state.taskNormalMismatchErrors + state.taskTrapErrors;
+      }
+
+      const questionType = trial.isMatch
+        ? "一致"
+        : (trial.isTrap ? "トラップ不一致" : "通常不一致");
 
       state.trialLogs.push({
         trialNumber: trial.id,
         itemCodeOrder: trial.order,
         itemCodeActual: trial.actual,
+        questionType: questionType,
         isTrap: trial.isTrap,
         toolUsed: state.isToolActive,
         userDecision: userDecisionIsMatch ? "match" : "mismatch",
@@ -2323,7 +2339,9 @@
         taskTimeSpentSec: state.taskTimeSpentSec,
         taskTotalAnswered: state.taskTotalAnswered,
         taskToolSkipCount: state.taskToolSkipCount,
+        taskNormalMismatchErrors: state.taskNormalMismatchErrors,
         taskTrapErrors: state.taskTrapErrors,
+        taskTotalMismatchErrors: state.taskTotalMismatchErrors,
         chatResponses: state.chatResponses,
         surveyResponses: state.surveyResponses,
         trialLogs: state.trialLogs
@@ -2355,13 +2373,13 @@
       const bfR = state.bigFiveResponses || {};
       let csv = "\uFEFF";
       csv += "=== PARTICIPANT SUMMARY ===\n";
-      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,TrapErrors,Chat_Q1,Chat_Q2,Chat_Q3,Chat_Q4,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10\n";
-      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskTrapErrors},"${(state.chatResponses.q1 || "").replace(/"/g, '""')}","${(state.chatResponses.q2 || "").replace(/"/g, '""')}","${(state.chatResponses.q3 || "").replace(/"/g, '""')}","${(state.chatResponses.q4 || "").replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}\n\n`;
+      csv += "ParticipantID,Condition,Timestamp,TimeSpent_Sec,TotalAnswered,ToolSkipCount,NormalMismatchErrors,TrapErrors,TotalMismatchErrors,Chat_Q1,Chat_Q2,Chat_Q3,Chat_Q4,Survey_Q1,Survey_Q2,Survey_Q3,BF_Extraversion,BF_Agreeableness,BF_Conscientiousness,BF_Neuroticism,BF_Openness,BF_Q1,BF_Q2,BF_Q3,BF_Q4,BF_Q5,BF_Q6,BF_Q7,BF_Q8,BF_Q9,BF_Q10\n";
+      csv += `"${state.participantId}","${state.condition}","${new Date().toISOString()}",${state.taskTimeSpentSec},${state.taskTotalAnswered},${state.taskToolSkipCount},${state.taskNormalMismatchErrors},${state.taskTrapErrors},${state.taskTotalMismatchErrors},"${(state.chatResponses.q1 || "").replace(/"/g, '""')}","${(state.chatResponses.q2 || "").replace(/"/g, '""')}","${(state.chatResponses.q3 || "").replace(/"/g, '""')}","${(state.chatResponses.q4 || "").replace(/"/g, '""')}",${state.surveyResponses.q1},${state.surveyResponses.q2},${state.surveyResponses.q3},${bfS.extraversion ?? ""},${bfS.agreeableness ?? ""},${bfS.conscientiousness ?? ""},${bfS.neuroticism ?? ""},${bfS.openness ?? ""},${bfR.q1 ?? ""},${bfR.q2 ?? ""},${bfR.q3 ?? ""},${bfR.q4 ?? ""},${bfR.q5 ?? ""},${bfR.q6 ?? ""},${bfR.q7 ?? ""},${bfR.q8 ?? ""},${bfR.q9 ?? ""},${bfR.q10 ?? ""}\n\n`;
 
       csv += "=== TRIAL LOGS ===\n";
-      csv += "TrialNumber,OrderCode,ActualCode,IsTrap,ToolUsed,UserDecision,IsCorrect,ResponseTime_ms\n";
+      csv += "設問番号,発注コード,現品コード,問題種別(一致/通常不一致/トラップ不一致),トラップ問題(TRUE/FALSE),ツール使用(TRUE=使用/FALSE=省略),被験者の判定(match=一致/mismatch=不一致),判定の正否(TRUE=正解/FALSE=間違い),反応時間(ミリ秒)\n";
       state.trialLogs.forEach(t => {
-        csv += `${t.trialNumber},"${t.itemCodeOrder}","${t.itemCodeActual}",${t.isTrap},${t.toolUsed},"${t.userDecision}",${t.isCorrect},${t.responseTimeMs}\n`;
+        csv += `${t.trialNumber},"${t.itemCodeOrder}","${t.itemCodeActual}","${t.questionType || ""}",${t.isTrap},${t.toolUsed},"${t.userDecision}",${t.isCorrect},${t.responseTimeMs}\n`;
       });
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
