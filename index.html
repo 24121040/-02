@@ -47,6 +47,15 @@
     .animate-magnifier {
       animation: magnifier-float 1.8s infinite ease-in-out;
     }
+    /* カウントダウン数字のポップアニメーション */
+    @keyframes countdown-pop {
+      0% { transform: scale(0.55); opacity: 0; }
+      35% { transform: scale(1.12); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-countdown {
+      animation: countdown-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
     /* ニコニコ動画風の流し文字（ループテロップ）アニメーション */
     @keyframes nico-marquee {
       0% { transform: translateX(0%); }
@@ -94,22 +103,21 @@
 
   <!-- メインコンテンツ領域 -->
   <main id="appMain" class="flex-grow flex items-center justify-center p-2 sm:p-4">
-    <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200">
+    <div class="w-full max-w-4xl bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
 
       <!-- ==========================================
-           画面1: 実験設定画面 (アクセス順自動割り振り & 管理者用隠し切替)
+           画面1: 実験設定画面 (自動ID固定表示・音声読み上げ廃止・管理者用隠し切替)
            ========================================== -->
       <section id="screenSetup" class="p-4 sm:p-8 space-y-5">
         <div id="setupTitleHeader" class="border-b border-slate-200 pb-3 text-center select-none cursor-pointer">
           <h1 class="text-xl sm:text-2xl font-bold text-slate-800">照合業務タスク - 実験セッション設定</h1>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">指示された被験者IDを確認・入力し、作業ルールを音声で確認してください。</p>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">自動割り当てられた被験者IDおよび作業規定を確認してください。</p>
         </div>
 
         <div class="space-y-4 max-w-lg mx-auto">
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1">被験者ID (Participant ID)</label>
-            <input type="text" id="inputPid" value="P4821" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-base">
-            <p class="text-[11px] text-slate-400 mt-1">※指示がある場合は指定された番号を入力してください。</p>
+            <input type="text" id="inputPid" value="P4821" readonly tabindex="-1" class="w-full px-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 font-mono font-bold text-base cursor-default select-none focus:outline-none">
           </div>
 
           <!-- 通常アクセス時の自動割り当てステータス表示（誤操作防止のため選択ボタンは非表示） -->
@@ -144,23 +152,19 @@
             </div>
           </div>
 
-          <div class="bg-amber-50 border-l-4 border-amber-400 p-3.5 sm:p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1">
+          <div class="bg-amber-50 border-l-4 border-amber-400 p-3.5 sm:p-4 rounded text-xs text-amber-800 leading-relaxed space-y-1.5">
             <div class="font-bold text-sm text-amber-900 mb-1">【作業規定およびタスクルール】</div>
             <p>1. あなたは遠隔の他参加者3名と4人1組の「照合検査班」に割り当てられます。</p>
             <p>2. <strong>チーム4名全員が2分30秒（150秒）以内に全50問をミスなく完了</strong>した場合のみ「合格」となります。</p>
             <p>3. <strong>1名でも未達または誤判定（見落とし）が発生した時点で連帯責任によりチーム全員が不合格</strong>となります。</p>
-            <p>4. 確実な照合のため、規定の「詳細照合ツール」を用いて1件ずつ検査を行うことが定められています。</p>
+            <p>4. 確実な照合のため、規定の<strong>「詳細照合ツール」</strong>を用いて1件ずつ検査を行うことが定められています。</p>
           </div>
 
-          <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
-            <button id="btnReadRules" class="w-full sm:w-1/2 py-3 px-4 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium text-sm flex items-center justify-center space-x-2 transition">
-              <span>🔊 ルールを音声で確認する</span>
-            </button>
-            <button id="btnToBigFive" disabled class="w-full sm:w-1/2 py-3 px-4 bg-slate-300 text-slate-500 rounded-lg font-bold text-base cursor-not-allowed transition flex items-center justify-center">
+          <div class="pt-2">
+            <button id="btnToBigFive" class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-base shadow transition flex items-center justify-center">
               <span>事前アンケートへ進む →</span>
             </button>
           </div>
-          <p id="ruleSpeechStatus" class="text-center text-xs text-slate-500">※「ルールを音声で確認する」を押して読み上げが完了すると、次へ進めます。</p>
         </div>
       </section>
 
@@ -438,7 +442,7 @@
         <!-- スポットライト対象①：左右の品名コード枠 -->
         <div id="tutCodeGridWrapper" class="relative rounded-xl transition-all duration-200">
           <!-- 虫眼鏡アイコン（段階1で表示） -->
-          <div id="tutMagnifier1" class="hidden absolute -top-5 right-1 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+          <div id="tutMagnifier1" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
             <svg width="46" height="46" viewBox="0 0 64 64">
               <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
               <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
@@ -495,7 +499,7 @@
         <!-- スポットライト対象②：中央の規定検査ツール枠 -->
         <div id="tutToolContainer" class="relative bg-slate-100 p-3.5 sm:p-4 rounded-lg border border-slate-300 space-y-2 transition-all duration-300">
           <!-- 虫眼鏡アイコン（段階2で表示） -->
-          <div id="tutMagnifier2" class="hidden absolute -top-5 right-1 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+          <div id="tutMagnifier2" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
             <svg width="46" height="46" viewBox="0 0 64 64">
               <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
               <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
@@ -518,9 +522,9 @@
             <div id="tutToolResult" class="text-xs font-bold text-center sm:text-right"></div>
           </div>
 
-          <!-- 吹き出し②：※ツールの案内（ステップ番号なし・見切れ防止のためツール枠の上側へ配置） -->
-          <div id="tutBubble2" class="hidden absolute left-1/2 -translate-x-1/2 bottom-full mb-3.5 w-[94%] max-w-sm bg-white border-2 border-sky-400 rounded-2xl p-3.5 shadow-2xl z-50">
-            <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-sky-400 rotate-45"></div>
+          <!-- 吹き出し②：※ツールの案内（ステップ番号なし） -->
+          <div id="tutBubble2" class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3.5 w-[94%] max-w-sm bg-white border-2 border-sky-400 rounded-2xl p-3.5 shadow-2xl z-50">
+            <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l-2 border-t-2 border-sky-400 rotate-45"></div>
             <div class="flex items-center space-x-2 mb-1.5">
               <span class="bg-sky-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-md">※ ツール案内</span>
               <span class="text-xs sm:text-sm font-bold text-slate-900">詳細照合ツールについて</span>
@@ -543,7 +547,7 @@
         <!-- スポットライト対象③：下部の判定ボタン枠 -->
         <div id="tutJudgeGridWrapper" class="relative rounded-xl pt-1 transition-all duration-200">
           <!-- 虫眼鏡アイコン（段階3で表示） -->
-          <div id="tutMagnifier3" class="hidden absolute -top-5 right-1 z-50 pointer-events-none animate-magnifier drop-shadow-md">
+          <div id="tutMagnifier3" class="hidden absolute -top-5 -right-2 z-50 pointer-events-none animate-magnifier drop-shadow-md">
             <svg width="46" height="46" viewBox="0 0 64 64">
               <line x1="41" y1="41" x2="57" y2="57" stroke="#1e293b" stroke-width="10" stroke-linecap="round"/>
               <line x1="41" y1="41" x2="57" y2="57" stroke="#f59e0b" stroke-width="6" stroke-linecap="round"/>
@@ -648,15 +652,9 @@
       </section>
 
       <!-- ==========================================
-           画面3: 本番開始スタンバイ画面
+           画面3: 本番開始スタンバイ画面（再練習ボタン削除）
            ========================================== -->
       <section id="screenReady" class="hidden p-5 sm:p-8 space-y-6 relative">
-        <div class="flex justify-end">
-          <button id="btnRestartTutorial" class="text-xs text-blue-600 hover:text-blue-800 font-semibold px-3 py-1.5 border border-blue-200 rounded-md hover:bg-blue-50 transition">
-            ↺ チュートリアルをもう一度行う
-          </button>
-        </div>
-
         <div class="text-center max-w-lg mx-auto space-y-5">
           <div class="w-14 h-14 sm:w-16 sm:h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl font-bold">
             ⏱
@@ -691,6 +689,23 @@
           </button>
         </div>
       </section>
+
+      <!-- ==========================================
+           画面3.5: 本番開始前 3カウントダウンオーバーレイ (3 -> 2 -> 1)
+           ========================================== -->
+      <div id="countdownOverlay" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 text-white select-none">
+        <div class="text-center space-y-4">
+          <div class="inline-block px-3.5 py-1 rounded-full bg-blue-600/30 border border-blue-400/50 text-xs sm:text-sm font-bold tracking-widest text-blue-200">
+            照合検査タスク 開始まで
+          </div>
+          <div id="countdownNumber" class="font-mono text-8xl sm:text-9xl font-black text-amber-400 drop-shadow-[0_0_25px_rgba(251,191,36,0.65)]">
+            3
+          </div>
+          <p class="text-xs sm:text-sm text-slate-300 font-medium">
+            制限時間 2分30秒 ／ 全50問（4名連帯責任）
+          </p>
+        </div>
+      </div>
 
       <!-- ==========================================
            画面4: 本番データ照合タスク画面 (150秒)
@@ -821,7 +836,7 @@
 
       <!-- ==========================================
            画面6: AIReNヒアリング画面
-           ★ ①エージェント枠(画面の約1/3) ＋ ②ニコニコ動画風ループ流し文字 ＋ ③入力テキスト欄 ＋ ④対話ログ
+           ★ ①エージェント枠(画面の約1/3 + 再再生ボタン) ＋ ②ニコニコ動画風ループ流し文字 ＋ ③入力テキスト欄 ＋ ④対話ログ
            ========================================== -->
       <section id="screenChat" class="hidden fixed inset-x-0 top-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
         <div class="w-full max-w-xl mx-auto flex flex-col justify-start p-1.5 sm:p-3 gap-1.5 h-full">
@@ -830,6 +845,11 @@
           <div id="avatarBoxWrapper" class="h-[31dvh] min-h-[175px] max-h-[280px] shrink-0 bg-white border-2 border-slate-200 rounded-xl p-1.5 flex items-center justify-center relative shadow-sm overflow-hidden">
             <span class="absolute left-3 top-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider z-10">品質管理AI「AIReN」</span>
             <span id="avatarStatusText" class="absolute right-3 top-1.5 text-[11px] font-bold text-blue-600 font-mono z-10">● 待機中</span>
+
+            <!-- MP3/音声の聞き直しボタン -->
+            <button type="button" id="btnReplayQuestionAudio" class="absolute right-2.5 bottom-2 z-20 px-2.5 py-1 bg-slate-100 hover:bg-blue-50 active:bg-blue-100 border border-slate-300 rounded-full text-[11px] font-bold text-slate-700 flex items-center space-x-1 shadow-sm transition">
+              <span>🔊 もう一度聞く</span>
+            </button>
             
             <!-- 枠の高さいっぱいに広がるコンテナ -->
             <div id="avatarContainer" class="h-full aspect-square max-h-[245px] flex items-center justify-center relative pt-3">
@@ -1065,7 +1085,7 @@
   </footer>
 
   <!-- ==========================================
-       JavaScript ロジック部 (vol.6 完全版)
+       JavaScript ロジック部 (vol.7 完全版)
        ========================================== -->
   <script>
     // ==================== 設定 & 状態管理 ====================
@@ -1233,11 +1253,9 @@
       badge.textContent = `Q${stepIndex + 1}/4`;
       track.textContent = text;
 
-      // 文字数に応じて流れる速度（1文字あたり約0.26秒、最低8.5秒）を自然に設定
       const durationSec = Math.max(8.5, text.length * 0.26);
       track.style.setProperty('--marquee-duration', `${durationSec}s`);
 
-      // アニメーションを先頭（右端）から再スタート
       track.style.animation = 'none';
       void track.offsetWidth;
       track.style.animation = '';
@@ -1294,23 +1312,13 @@
       requestAnimationFrame(update);
     }
 
-    // ==================== スマホ対応 音声エンジン & 口パク・拍動波形連動制御 ====================
-    let isAudioUnlocked = false;
+    // ==================== MP3音声再生エンジン（自動フォールバック＆口パク・拍動連動） ====================
+    const questionAudioFiles = ["q1.mp3", "q2.mp3", "q3.mp3", "q4.mp3"];
+    let activeAudioPlayer = null;
     let mouthAnimInterval = null;
     let waveActive = false;
-    let waveAckPulseTime = 0; // 条件C：回答送信時の受容拍動トリガー時刻
-
-    function unlockAudioOnFirstTouch() {
-      if (isAudioUnlocked || !window.speechSynthesis) return;
-      const dummyUttr = new SpeechSynthesisUtterance("");
-      dummyUttr.volume = 0;
-      window.speechSynthesis.speak(dummyUttr);
-      isAudioUnlocked = true;
-      document.removeEventListener('touchstart', unlockAudioOnFirstTouch);
-      document.removeEventListener('click', unlockAudioOnFirstTouch);
-    }
-    document.addEventListener('touchstart', unlockAudioOnFirstTouch, { once: true });
-    document.addEventListener('click', unlockAudioOnFirstTouch, { once: true });
+    let waveAckPulseTime = 0;
+    let currentPlaybackToken = 0;
 
     function startTalkingVisuals() {
       stopTalkingVisuals();
@@ -1338,21 +1346,35 @@
       waveActive = false;
     }
 
-    function speakText(text, onEndCallback, syncAvatar = false) {
+    function stopAllQuestionAudio() {
+      currentPlaybackToken++;
+      if (activeAudioPlayer) {
+        try {
+          activeAudioPlayer.pause();
+          activeAudioPlayer.currentTime = 0;
+        } catch (e) {}
+        activeAudioPlayer = null;
+      }
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {}
+      }
+      stopTalkingVisuals();
+    }
+
+    // MP3ファイル未配置・再生不可時のみ動作する Web Speech API フォールバック
+    function fallbackSpeakText(text, token, onEndCallback, syncAvatar) {
       const estimatedDurationMs = Math.max(1500, text.length * 165);
       const startTime = performance.now();
       let hasEnded = false;
 
-      if (syncAvatar) {
-        startTalkingVisuals();
-      }
+      if (syncAvatar) startTalkingVisuals();
 
       function finishSpeech() {
-        if (hasEnded) return;
+        if (hasEnded || token !== currentPlaybackToken) return;
         hasEnded = true;
-        if (syncAvatar) {
-          stopTalkingVisuals();
-        }
+        if (syncAvatar) stopTalkingVisuals();
         if (onEndCallback) onEndCallback();
       }
 
@@ -1361,42 +1383,85 @@
         return;
       }
 
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-      }
-
-      const uttr = new SpeechSynthesisUtterance(text);
-      uttr.lang = 'ja-JP';
-      uttr.rate = 1.0;
-      uttr.pitch = 1.0;
-      uttr.volume = 1.0;
-
-      const voices = window.speechSynthesis.getVoices();
-      const jaVoice = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
-      if (jaVoice) {
-        uttr.voice = jaVoice;
-      }
-
-      uttr.onend = () => {
-        const elapsed = performance.now() - startTime;
-        if (syncAvatar && elapsed < 500) {
-          setTimeout(finishSpeech, estimatedDurationMs - elapsed);
-        } else {
-          finishSpeech();
+      try {
+        if (window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
         }
-      };
+        const uttr = new SpeechSynthesisUtterance(text);
+        uttr.lang = 'ja-JP';
+        uttr.rate = 1.0;
+        uttr.pitch = 1.0;
+        uttr.volume = 1.0;
 
-      uttr.onerror = () => {
-        const elapsed = performance.now() - startTime;
-        const remain = Math.max(0, estimatedDurationMs - elapsed);
-        setTimeout(finishSpeech, remain);
-      };
+        const voices = window.speechSynthesis.getVoices();
+        const jaVoice = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+        if (jaVoice) uttr.voice = jaVoice;
 
-      setTimeout(finishSpeech, estimatedDurationMs + 2500);
+        uttr.onend = () => {
+          const elapsed = performance.now() - startTime;
+          if (syncAvatar && elapsed < 500) {
+            setTimeout(finishSpeech, estimatedDurationMs - elapsed);
+          } else {
+            finishSpeech();
+          }
+        };
+        uttr.onerror = () => {
+          const elapsed = performance.now() - startTime;
+          setTimeout(finishSpeech, Math.max(0, estimatedDurationMs - elapsed));
+        };
 
-      setTimeout(() => {
+        setTimeout(finishSpeech, estimatedDurationMs + 2500);
         window.speechSynthesis.speak(uttr);
-      }, 50);
+      } catch (e) {
+        setTimeout(finishSpeech, estimatedDurationMs);
+      }
+    }
+
+    // プライマリ方式：事前生成MP3ファイル（q1.mp3〜q4.mp3）を <audio> で再生
+    function playQuestionAudio(stepIndex, text, onEndCallback, syncAvatar = true) {
+      stopAllQuestionAudio();
+      const token = currentPlaybackToken;
+      const mp3Src = questionAudioFiles[stepIndex];
+
+      if (!mp3Src) {
+        fallbackSpeakText(text, token, onEndCallback, syncAvatar);
+        return;
+      }
+
+      const audio = new Audio(mp3Src);
+      audio.preload = "auto";
+      activeAudioPlayer = audio;
+
+      let switchedToFallback = false;
+      function triggerFallback() {
+        if (switchedToFallback || token !== currentPlaybackToken) return;
+        switchedToFallback = true;
+        stopTalkingVisuals();
+        fallbackSpeakText(text, token, onEndCallback, syncAvatar);
+      }
+
+      audio.addEventListener('playing', () => {
+        if (token !== currentPlaybackToken) return;
+        if (syncAvatar) startTalkingVisuals();
+      });
+
+      audio.addEventListener('ended', () => {
+        if (token !== currentPlaybackToken) return;
+        if (syncAvatar) stopTalkingVisuals();
+        if (onEndCallback) onEndCallback();
+      });
+
+      audio.addEventListener('error', () => {
+        triggerFallback();
+      });
+
+      // ユーザー操作イベントと同期して再生開始
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          triggerFallback();
+        });
+      }
     }
 
     // ==================== 初期化・イベント設定 ====================
@@ -1498,36 +1563,18 @@
         });
       });
 
+      // 被験者IDの自動生成（固定表示）
       if (params.get('pid')) {
-        document.getElementById('inputPid').value = params.get('pid');
+        state.participantId = params.get('pid').trim();
+        document.getElementById('inputPid').value = state.participantId;
       } else {
-        const randPid = "P" + Math.floor(1000 + Math.random() * 9000);
-        document.getElementById('inputPid').value = randPid;
+        state.participantId = "P" + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('inputPid').value = state.participantId;
       }
 
-      bindEvent('btnReadRules', 'click', () => {
-        const btn = document.getElementById('btnReadRules');
-        const status = document.getElementById('ruleSpeechStatus');
-        btn.disabled = true;
-        btn.classList.add('opacity-60');
-        status.textContent = '🔊 ルールを読み上げ中...';
-
-        const ruleSpeech = "作業規定およびタスクルールをご案内します。あなたは遠隔の参加者と4人1組の検査班に割り当てられます。制限時間は2分30秒、全50問です。チーム4名全員が時間内にミスなく完了した場合のみ合格となります。1名でも未達または誤判定が発生した時点で連帯不合格となります。確実な照合のため、規定の詳細照合ツールを用いて検査を行ってください。";
-        speakText(ruleSpeech, () => {
-          status.textContent = '✓ 読み上げ完了：事前アンケートへ進んでください。';
-          status.classList.add('text-emerald-600', 'font-bold');
-          const toBf = document.getElementById('btnToBigFive');
-          if (toBf) {
-            toBf.disabled = false;
-            toBf.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
-            toBf.classList.add('bg-blue-600', 'hover:bg-blue-700', 'text-white', 'shadow');
-          }
-        }, false);
-      });
-
-      // 画面1のボタンから画面1.5（BIGFIVEアンケート）へ遷移
+      // 画面1のボタンから画面1.5（BIGFIVEアンケート）へ直接遷移（ルール読み上げなし）
       bindEvent('btnToBigFive', 'click', () => {
-        state.participantId = document.getElementById('inputPid').value.trim() || 'P4821';
+        state.participantId = document.getElementById('inputPid').value.trim() || state.participantId;
         state.peerIds = generateUniquePeerIds(state.participantId);
         const checkedCond = document.querySelector('input[name="expCondition"]:checked');
         state.condition = checkedCond ? checkedCond.value : state.condition;
@@ -1555,12 +1602,9 @@
         showScreen('screenReady');
       });
 
-      bindEvent('btnRestartTutorial', 'click', () => {
-        startTutorial(false); // 2回目以降はコーチマークを再表示せず練習から開始
-      });
-
+      // 本番タスク開始ボタン押下時に3カウントダウンを実行してから開始
       bindEvent('btnStartMainTask', 'click', () => {
-        startMainTask();
+        startCountdownThenMainTask();
       });
 
       bindEvent('btnTutTool', 'click', runTutorialTool);
@@ -1572,7 +1616,19 @@
       bindEvent('btnMismatch', 'click', () => handleTaskAnswer(false));
       bindEvent('btnResumeAfterWarning', 'click', resumeTaskAfterWarning);
 
+      // 画面5のボタン押下に同期してヒアリング画面開始＆Q1のMP3を再生
       bindEvent('btnToChat', 'click', startChatSession);
+
+      // 画面6の「もう一度聞く」ボタンで現在の質問のMP3を再再生
+      bindEvent('btnReplayQuestionAudio', 'click', () => {
+        if (state.chatStep < chatQuestions.length) {
+          const qText = chatQuestions[state.chatStep];
+          document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
+          playQuestionAudio(state.chatStep, qText, () => {
+            document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
+          }, true);
+        }
+      });
 
       const inputChat = document.getElementById('inputChat');
       if (inputChat) {
@@ -1656,7 +1712,6 @@
       const bub2 = document.getElementById('tutBubble2');
       const bub3 = document.getElementById('tutBubble3');
 
-      // いったんすべてリセット
       [codeWrap, toolWrap, judgeWrap].forEach(el => {
         if (el) el.classList.remove('coach-spotlight-gold', 'coach-spotlight-sky');
       });
@@ -1671,28 +1726,18 @@
 
       if (backdrop) backdrop.classList.remove('hidden');
 
-      let activeBubble = null;
       if (step === 1) {
         codeWrap.classList.add('coach-spotlight-gold');
         mag1.classList.remove('hidden');
         bub1.classList.remove('hidden');
-        activeBubble = bub1;
       } else if (step === 2) {
         toolWrap.classList.add('coach-spotlight-sky');
         mag2.classList.remove('hidden');
         bub2.classList.remove('hidden');
-        activeBubble = bub2;
       } else if (step === 3) {
         judgeWrap.classList.add('coach-spotlight-gold');
         mag3.classList.remove('hidden');
         bub3.classList.remove('hidden');
-        activeBubble = bub3;
-      }
-
-      if (activeBubble) {
-        setTimeout(() => {
-          activeBubble.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 50);
       }
     }
 
@@ -1734,7 +1779,6 @@
     }
 
     function runTutorialTool() {
-      if (state.tutCoachStep > 0) return;
       const btn = document.getElementById('btnTutTool');
       btn.disabled = true;
       document.getElementById('tutToolStatus').textContent = '照合解析中... (2.5秒)';
@@ -1765,7 +1809,6 @@
     }
 
     function handleTutorialAnswer(userDecision) {
-      if (state.tutCoachStep > 0) return;
       state.currentTutIndex++;
       if (state.currentTutIndex < tutorialTasks.length) {
         document.getElementById('tutMatchingCount').textContent = "待機者を検知: 3/4名接続中...";
@@ -1801,8 +1844,42 @@
       }
     }
 
-    // ==================== 本番タスク制御 (150秒) ====================
+    // ==================== 本番タスク開始前 3カウントダウン ＆ タスク制御 (150秒) ====================
     let trialStartTime = 0;
+
+    function startCountdownThenMainTask() {
+      const btnStart = document.getElementById('btnStartMainTask');
+      if (btnStart) btnStart.disabled = true;
+
+      const overlay = document.getElementById('countdownOverlay');
+      const numEl = document.getElementById('countdownNumber');
+      if (!overlay || !numEl) {
+        startMainTask();
+        return;
+      }
+
+      let count = 3;
+      numEl.textContent = count;
+      numEl.classList.remove('animate-countdown');
+      void numEl.offsetWidth;
+      numEl.classList.add('animate-countdown');
+      overlay.classList.remove('hidden');
+
+      const cdInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          numEl.textContent = count;
+          numEl.classList.remove('animate-countdown');
+          void numEl.offsetWidth;
+          numEl.classList.add('animate-countdown');
+        } else {
+          clearInterval(cdInterval);
+          overlay.classList.add('hidden');
+          if (btnStart) btnStart.disabled = false;
+          startMainTask();
+        }
+      }, 1000);
+    }
 
     function startMainTask() {
       state.currentTrialIndex = 0;
@@ -1975,7 +2052,7 @@
       }
     }
 
-    // ==================== AIReN ヒアリング対話（全4問 ＋ 流し文字 ＋ 拍動波形） ====================
+    // ==================== AIReN ヒアリング対話（全4問 ＋ MP3再生 ＋ 流し文字 ＋ 拍動波形） ====================
     const chatQuestions = [
       "どのように作業を進めていたか教えてください。",
       "何がエラーの原因だと思いますか？",
@@ -2038,18 +2115,19 @@
 
     function askNextQuestion() {
       if (state.chatStep >= chatQuestions.length) {
-        stopTalkingVisuals();
+        stopAllQuestionAudio();
         showScreen('screenSurvey');
         return;
       }
 
-      const qText = chatQuestions[state.chatStep];
+      const stepIdx = state.chatStep;
+      const qText = chatQuestions[stepIdx];
       appendChatMessage('airen', qText);
-      updateNicoTelop(state.chatStep, qText);
+      updateNicoTelop(stepIdx, qText);
 
       document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
 
-      speakText(qText, () => {
+      playQuestionAudio(stepIdx, qText, () => {
         document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
       }, true);
     }
@@ -2067,14 +2145,14 @@
         const cy = h / 2;
         ctx.clearRect(0, 0, w, h);
 
-        // 1. 心拍リズム計算（約66BPM = 910ms周期のドクン・ドクン二段拍動）
+        // 1. 心拍リズム計算（約66BPM = 920ms周期のドクン・ドクン二段拍動）
         const beatPeriod = waveActive ? 680 : 920;
         const t = (now % beatPeriod) / beatPeriod;
         const beat1 = Math.exp(-Math.pow((t - 0.14) / 0.055, 2));
         const beat2 = 0.58 * Math.exp(-Math.pow((t - 0.30) / 0.065, 2));
         let heartbeat = beat1 + beat2;
 
-        // 回答送信時の受容拍動（700ms間ふんわり広がって落ち着く）
+        // 回答送信時の受容拍動（750ms間ふんわり広がって落ち着く）
         let ackRatio = 0;
         if (waveAckPulseTime > 0) {
           const dt = now - waveAckPulseTime;
@@ -2119,9 +2197,9 @@
 
         // 4. 多層ウェーブ（両端が自然に減衰する有機的な音声・脈動波形）
         const layers = [
-          { ampScale: 1.0,  freq: 0.042, speed: 1.0,  width: 3.6, alpha: 0.92 },
+          { ampScale: 1.0,  freq: 0.042, speed: 1.0,   width: 3.6, alpha: 0.92 },
           { ampScale: 0.72, freq: 0.058, speed: -0.75, width: 2.5, alpha: 0.55 },
-          { ampScale: 0.48, freq: 0.028, speed: 0.55, width: 2.0, alpha: 0.35 }
+          { ampScale: 0.48, freq: 0.028, speed: 0.55,  width: 2.0, alpha: 0.35 }
         ];
 
         layers.forEach((layer, idx) => {
@@ -2139,8 +2217,8 @@
           const span = w - margin * 2;
           for (let i = 0; i <= span; i += 2) {
             const x = margin + i;
-            const norm = i / span; // 0..1
-            const envelope = Math.sin(norm * Math.PI); // 両端を0に収束させる窓関数
+            const norm = i / span;
+            const envelope = Math.sin(norm * Math.PI);
             const speechMod = waveActive ? (0.75 + 0.35 * Math.sin(now * 0.011 + idx)) : 1.0;
             const baseAmp = waveActive ? 34 : (7 + heartbeat * 13);
             const amp = (baseAmp + ackRatio * 14) * layer.ampScale * envelope * speechMod;
@@ -2211,10 +2289,10 @@
       document.getElementById('charCount').textContent = '0 / 15 文字';
       state.chatStep++;
 
-      // 送信時にキーボードを閉じて下部の質問ログも再度見えるようにする
       input.blur();
 
-      setTimeout(askNextQuestion, 800);
+      // ユーザー操作の直後に同期的に次の質問とMP3再生を呼び出す（モバイルブラウザの自動再生ブロック回避）
+      askNextQuestion();
     }
 
     // ==================== 事後アンケート & 自動送信 ====================
