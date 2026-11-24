@@ -1084,6 +1084,9 @@
     HCI & Psychology Research Lab © 2026
   </footer>
 
+  <!-- モバイル端末での確実な再生・権限維持のための単一オーディオ要素 -->
+  <audio id="questionAudioPlayer" preload="auto" playsinline webkit-playsinline class="hidden"></audio>
+
   <!-- ==========================================
        JavaScript ロジック部 (最終版)
        ========================================== -->
@@ -1315,26 +1318,180 @@
       requestAnimationFrame(update);
     }
 
-    // ==================== MP3音声再生エンジン（自動フォールバック＆口パク・拍動連動） ====================
+    // ==================== MP3音声再生エンジン（スマホ完全対応：事前アンロック＋プリフェッチ＋Web Audio併用＋同期フォールバック） ====================
     const questionAudioFiles = ["q1.mp3", "q2.mp3", "q3.mp3", "q4.mp3"];
-    let preloadedAudioCache = [];
+    // 極短の無音WAV（モバイルブラウザの <audio> 要素アンロック用）
+    const SILENT_WAV_DATA_URI = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
-    function preloadQuestionAudios() {
-      if (preloadedAudioCache.length > 0) return;
-      questionAudioFiles.forEach((src) => {
-        try {
-          const preAudio = new Audio(src);
-          preAudio.preload = "auto";
-          preAudio.load();
-          preloadedAudioCache.push(preAudio);
-        } catch (e) {}
-      });
-    }
-    let activeAudioPlayer = null;
+    let mp3Status = ["unknown", "unknown", "unknown", "unknown"]; // 'unknown' | 'ready' | 'missing'
+    let preloadedArrayBuffers = [null, null, null, null];
+    let decodedAudioBuffers = [null, null, null, null];
+    let preloadStarted = false;
+
+    let audioCtx = null;
+    let activeBufferSource = null;
+    let activeUtterance = null;
+    let cachedJaVoice = null;
+    let isMobileAudioUnlocked = false;
+    let isQuestionAudioPlaying = false;
+
     let mouthAnimInterval = null;
     let waveActive = false;
     let waveAckPulseTime = 0;
     let currentPlaybackToken = 0;
+
+    function refreshJaVoice() {
+      if (!window.speechSynthesis) return null;
+      try {
+        const voices = window.speechSynthesis.getVoices() || [];
+        if (voices.length === 0) return cachedJaVoice;
+        const jaVoices = voices.filter(v => v.lang && (v.lang.toLowerCase().startsWith('ja') || v.lang.includes('JP')));
+        // Android/iOS ではローカル音声(localService=true)の方がオフラインや通信瞬断に強く安定しやすい
+        cachedJaVoice = jaVoices.find(v => v.localService) || jaVoices[0] || null;
+      } catch (e) {}
+      return cachedJaVoice;
+    }
+
+    if (window.speechSynthesis) {
+      refreshJaVoice();
+      if (typeof window.speechSynthesis.addEventListener === 'function') {
+        window.speechSynthesis.addEventListener('voiceschanged', refreshJaVoice);
+      } else {
+        window.speechSynthesis.onvoiceschanged = refreshJaVoice;
+      }
+    }
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) {
+          try { audioCtx = new AC(); } catch (e) {}
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        try { audioCtx.resume().catch(() => {}); } catch (e) {}
+      }
+      return audioCtx;
+    }
+
+    // スマホブラウザの自動再生制限を最初のユーザー操作で一括解除（<audio> / AudioContext / SpeechSynthesis）
+    function unlockMobileAudio() {
+      if (isMobileAudioUnlocked) {
+        ensureAudioContext();
+        return;
+      }
+      isMobileAudioUnlocked = true;
+
+      // 1. Web Audio API のアンロック
+      const ctx = ensureAudioContext();
+      if (ctx) {
+        try {
+          const buf = ctx.createBuffer(1, 1, 22050);
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          src.connect(ctx.destination);
+          src.start(0);
+        } catch (e) {}
+        // すでに fetch 済みの ArrayBuffer があればデコード開始
+        preloadedArrayBuffers.forEach((ab, i) => {
+          if (ab && !decodedAudioBuffers[i]) {
+            decodeBufferAt(i, ab);
+          }
+        });
+      }
+
+      // 2. DOM常駐の単一 <audio> 要素を無音WAVでアンロック（再生中でない場合のみ）
+      const player = document.getElementById('questionAudioPlayer');
+      if (player && !isQuestionAudioPlaying) {
+        try {
+          player.muted = true;
+          player.src = SILENT_WAV_DATA_URI;
+          const p = player.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => {
+              if (!isQuestionAudioPlaying) {
+                player.pause();
+                player.muted = false;
+              }
+            }).catch(() => {
+              player.muted = false;
+            });
+          } else {
+            player.muted = false;
+          }
+        } catch (e) {
+          player.muted = false;
+        }
+      }
+
+      // 3. Web Speech API のアンロック（iOS Safari / Android Chrome の初回無音対策）
+      if (window.speechSynthesis) {
+        try {
+          refreshJaVoice();
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+          }
+          if (!isQuestionAudioPlaying && !window.speechSynthesis.speaking) {
+            const silentUttr = new SpeechSynthesisUtterance(" ");
+            silentUttr.lang = 'ja-JP';
+            silentUttr.volume = 0;
+            silentUttr.rate = 2.0;
+            window.speechSynthesis.speak(silentUttr);
+          }
+        } catch (e) {}
+      }
+    }
+
+    document.addEventListener('touchstart', unlockMobileAudio, { once: true, passive: true });
+    document.addEventListener('click', unlockMobileAudio, { once: true });
+
+    function decodeBufferAt(idx, arrayBuffer) {
+      if (!audioCtx || !arrayBuffer || decodedAudioBuffers[idx]) return;
+      try {
+        // decodeAudioData は ArrayBuffer を消費するため slice(0) でコピーを渡す
+        audioCtx.decodeAudioData(
+          arrayBuffer.slice(0),
+          (decoded) => { decodedAudioBuffers[idx] = decoded; },
+          () => {}
+        );
+      } catch (e) {}
+    }
+
+    // MP3ファイルの存在確認と事前プリフェッチ（ブラウザキャッシュ格納＋Web Audio用デコード準備）
+    function preloadQuestionAudios() {
+      if (preloadStarted) return;
+      preloadStarted = true;
+
+      questionAudioFiles.forEach((src, idx) => {
+        fetch(src, { cache: 'force-cache' })
+          .then((res) => {
+            const contentType = (res.headers.get('content-type') || '').toLowerCase();
+            if (!res.ok || contentType.includes('text/html')) {
+              mp3Status[idx] = 'missing';
+              return null;
+            }
+            return res.arrayBuffer();
+          })
+          .then((ab) => {
+            if (!ab) return;
+            if (ab.byteLength < 100) {
+              mp3Status[idx] = 'missing';
+              return;
+            }
+            mp3Status[idx] = 'ready';
+            preloadedArrayBuffers[idx] = ab;
+            if (audioCtx) {
+              decodeBufferAt(idx, ab);
+            }
+          })
+          .catch(() => {
+            // file:// ローカル起動や一時的通信エラー時は 'unknown' のまま残し、再生時に <audio> を試行
+            if (mp3Status[idx] !== 'ready') {
+              mp3Status[idx] = 'unknown';
+            }
+          });
+      });
+    }
 
     function startTalkingVisuals() {
       stopTalkingVisuals();
@@ -1364,32 +1521,53 @@
 
     function stopAllQuestionAudio() {
       currentPlaybackToken++;
-      if (activeAudioPlayer) {
+      isQuestionAudioPlaying = false;
+
+      const player = document.getElementById('questionAudioPlayer');
+      if (player) {
+        player.onplaying = null;
+        player.onended = null;
+        player.onerror = null;
         try {
-          activeAudioPlayer.pause();
-          activeAudioPlayer.currentTime = 0;
+          player.pause();
         } catch (e) {}
-        activeAudioPlayer = null;
       }
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+
+      if (activeBufferSource) {
+        activeBufferSource.onended = null;
+        try {
+          activeBufferSource.stop(0);
+        } catch (e) {}
+        try {
+          activeBufferSource.disconnect();
+        } catch (e) {}
+        activeBufferSource = null;
+      }
+
+      if (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending)) {
         try {
           window.speechSynthesis.cancel();
         } catch (e) {}
       }
+      activeUtterance = null;
       stopTalkingVisuals();
     }
 
     // MP3ファイル未配置・再生不可時のみ動作する Web Speech API フォールバック
     function fallbackSpeakText(text, token, onEndCallback, syncAvatar) {
-      const estimatedDurationMs = Math.max(1500, text.length * 165);
+      if (token !== currentPlaybackToken) return;
+      const estimatedDurationMs = Math.max(1800, text.length * 165);
       const startTime = performance.now();
       let hasEnded = false;
 
+      isQuestionAudioPlaying = true;
       if (syncAvatar) startTalkingVisuals();
 
       function finishSpeech() {
         if (hasEnded || token !== currentPlaybackToken) return;
         hasEnded = true;
+        isQuestionAudioPlaying = false;
+        activeUtterance = null;
         if (syncAvatar) stopTalkingVisuals();
         if (onEndCallback) onEndCallback();
       }
@@ -1400,18 +1578,28 @@
       }
 
       try {
-        if (window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
         }
+
         const uttr = new SpeechSynthesisUtterance(text);
         uttr.lang = 'ja-JP';
         uttr.rate = 1.0;
         uttr.pitch = 1.0;
         uttr.volume = 1.0;
 
-        const voices = window.speechSynthesis.getVoices();
-        const jaVoice = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+        const jaVoice = refreshJaVoice();
         if (jaVoice) uttr.voice = jaVoice;
+
+        // GCによる発話破棄を防ぐためグローバル変数に保持
+        activeUtterance = uttr;
+
+        uttr.onstart = () => {
+          if (token !== currentPlaybackToken) return;
+          if (syncAvatar && !mouthAnimInterval && !waveActive) {
+            startTalkingVisuals();
+          }
+        };
 
         uttr.onend = () => {
           const elapsed = performance.now() - startTime;
@@ -1421,60 +1609,136 @@
             finishSpeech();
           }
         };
+
         uttr.onerror = () => {
           const elapsed = performance.now() - startTime;
           setTimeout(finishSpeech, Math.max(0, estimatedDurationMs - elapsed));
         };
 
-        setTimeout(finishSpeech, estimatedDurationMs + 2500);
+        setTimeout(finishSpeech, estimatedDurationMs + 3000);
         window.speechSynthesis.speak(uttr);
       } catch (e) {
         setTimeout(finishSpeech, estimatedDurationMs);
       }
     }
 
-    // プライマリ方式：事前生成MP3ファイル（q1.mp3〜q4.mp3）を <audio> で再生
+    // Web Audio API によるデコード済みバッファ再生（<audio> タグがブロックされた場合の確実なバックアップ）
+    function playDecodedBuffer(stepIndex, token, onEndCallback, syncAvatar, onFailCallback) {
+      const ctx = ensureAudioContext();
+      const buffer = decodedAudioBuffers[stepIndex];
+      if (!ctx || !buffer) {
+        if (onFailCallback) onFailCallback();
+        return;
+      }
+
+      try {
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        activeBufferSource = source;
+        isQuestionAudioPlaying = true;
+
+        source.onended = () => {
+          if (token !== currentPlaybackToken) return;
+          activeBufferSource = null;
+          isQuestionAudioPlaying = false;
+          if (syncAvatar) stopTalkingVisuals();
+          if (onEndCallback) onEndCallback();
+        };
+
+        const startPlayback = () => {
+          if (token !== currentPlaybackToken) return;
+          if (syncAvatar) startTalkingVisuals();
+          source.start(0);
+        };
+
+        if (ctx.state === 'suspended') {
+          ctx.resume().then(startPlayback).catch(() => {
+            if (onFailCallback) onFailCallback();
+          });
+        } else {
+          startPlayback();
+        }
+      } catch (e) {
+        if (onFailCallback) onFailCallback();
+      }
+    }
+
+    // プライマリ方式：単一DOM <audio> 要素で事前生成MP3（q1.mp3〜q4.mp3）を再生（失敗時は Web Audio -> Web Speech API へフォールバック）
     function playQuestionAudio(stepIndex, text, onEndCallback, syncAvatar = true) {
       stopAllQuestionAudio();
       const token = currentPlaybackToken;
       const mp3Src = questionAudioFiles[stepIndex];
 
-      if (!mp3Src) {
+      // 事前の存在確認で MP3 未配置が確定している場合は、クリックイベントと同期して即座に音声合成を実行
+      if (!mp3Src || mp3Status[stepIndex] === 'missing') {
         fallbackSpeakText(text, token, onEndCallback, syncAvatar);
         return;
       }
 
-      const audio = new Audio(mp3Src);
-      audio.preload = "auto";
-      activeAudioPlayer = audio;
-
-      let switchedToFallback = false;
-      function triggerFallback() {
-        if (switchedToFallback || token !== currentPlaybackToken) return;
-        switchedToFallback = true;
-        stopTalkingVisuals();
+      const player = document.getElementById('questionAudioPlayer');
+      if (!player) {
         fallbackSpeakText(text, token, onEndCallback, syncAvatar);
+        return;
       }
 
-      audio.addEventListener('playing', () => {
-        if (token !== currentPlaybackToken) return;
-        if (syncAvatar) startTalkingVisuals();
-      });
+      let hasFallenBack = false;
+      let visualsStarted = false;
+      isQuestionAudioPlaying = true;
 
-      audio.addEventListener('ended', () => {
+      function triggerFallback() {
+        if (hasFallenBack || token !== currentPlaybackToken) return;
+        hasFallenBack = true;
+        player.onplaying = null;
+        player.onended = null;
+        player.onerror = null;
+        try { player.pause(); } catch (e) {}
+        stopTalkingVisuals();
+
+        // デコード済み MP3 バッファがあれば Web Audio API で再生を試み、それも不可なら Web Speech API へ
+        if (decodedAudioBuffers[stepIndex]) {
+          playDecodedBuffer(stepIndex, token, onEndCallback, syncAvatar, () => {
+            fallbackSpeakText(text, token, onEndCallback, syncAvatar);
+          });
+        } else {
+          fallbackSpeakText(text, token, onEndCallback, syncAvatar);
+        }
+      }
+
+      player.muted = false;
+      player.volume = 1.0;
+      player.src = mp3Src;
+      try { player.currentTime = 0; } catch (e) {}
+
+      player.onplaying = () => {
         if (token !== currentPlaybackToken) return;
+        if (syncAvatar && !visualsStarted) {
+          visualsStarted = true;
+          startTalkingVisuals();
+        }
+      };
+
+      player.onended = () => {
+        if (token !== currentPlaybackToken) return;
+        isQuestionAudioPlaying = false;
         if (syncAvatar) stopTalkingVisuals();
         if (onEndCallback) onEndCallback();
-      });
+      };
 
-      audio.addEventListener('error', () => {
+      player.onerror = () => {
         triggerFallback();
-      });
+      };
 
       // ユーザー操作イベントと同期して再生開始
-      const playPromise = audio.play();
+      const playPromise = player.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
+        playPromise.then(() => {
+          if (token !== currentPlaybackToken) return;
+          if (syncAvatar && !visualsStarted) {
+            visualsStarted = true;
+            startTalkingVisuals();
+          }
+        }).catch(() => {
           triggerFallback();
         });
       }
@@ -1482,6 +1746,8 @@
 
     // ==================== 初期化・イベント設定 ====================
     window.addEventListener('DOMContentLoaded', () => {
+      // ページ読込直後から裏側で q1.mp3〜q4.mp3 の存在確認とキャッシュ取得を開始
+      preloadQuestionAudios();
       const randomTeamNum = Math.floor(2 + Math.random() * 7);
       state.teamName = `検査第${randomTeamNum}班`;
 
@@ -2340,10 +2606,9 @@
       document.getElementById('charCount').textContent = '0 / 15 文字';
       state.chatStep++;
 
-      input.blur();
-
-      // ユーザー操作の直後に同期的に次の質問とMP3再生を呼び出す（モバイルブラウザの自動再生ブロック回避）
+      // ユーザー操作の直後に同期的に次の質問と音声再生を開始してからキーボードを閉じる（スマホでの自動再生ブロック回避）
       askNextQuestion();
+      setTimeout(() => input.blur(), 50);
     }
 
     // ==================== 事後アンケート & 自動送信 ====================
