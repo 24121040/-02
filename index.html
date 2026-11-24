@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>業務データ照合システム - AIReN</title>
+  <title>研究発表用実験システム</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* スワイプによるページ再読み込み（プルリフレッシュ）やバウンスを防止 */
@@ -94,7 +94,7 @@
   <header id="appHeader" class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 flex justify-between items-center shadow-sm shrink-0">
     <div class="flex items-center space-x-2">
       <div class="w-6 h-6 sm:w-7 sm:h-7 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs sm:text-sm tracking-wider shrink-0">QC</div>
-      <span class="font-semibold text-slate-700 tracking-tight text-xs sm:text-base truncate">品質管理・データ照合コンソール (AIReN)</span>
+      <span class="font-semibold text-slate-700 tracking-tight text-xs sm:text-base truncate">研究発表用実験システム</span>
     </div>
     <div id="sessionHeaderInfo" class="text-[11px] sm:text-xs text-slate-500 font-mono shrink-0 ml-2">
       Ready
@@ -823,19 +823,19 @@
 
         <div class="bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-xs text-slate-600 leading-relaxed space-y-1.5">
           <p class="font-bold text-slate-800">【今後の手順について】</p>
-          <p>本インシデントの発生原因を調査するため、品質管理AI「AIReN」による個別ヒアリングを実施します。</p>
+          <p>本インシデントの発生原因を調査するため、品質管理AI「イコヌ」による個別ヒアリングを実施します。</p>
           <p class="text-slate-500">※本ヒアリングの回答内容は、他のチームメンバーには一切公開されません。</p>
         </div>
 
         <div class="text-center pt-1">
           <button id="btnToChat" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shadow-md transition">
-            AIReNとの個別ヒアリングを開始する →
+            イコヌとの個別ヒアリングを開始する →
           </button>
         </div>
       </section>
 
       <!-- ==========================================
-           画面6: AIReNヒアリング画面
+           画面6: イコヌヒアリング画面
            ★ ①エージェント枠(画面の約1/3 + 再再生ボタン) ＋ ②ニコニコ動画風ループ流し文字 ＋ ③入力テキスト欄 ＋ ④対話ログ
            ========================================== -->
       <section id="screenChat" class="hidden fixed inset-x-0 top-0 z-50 bg-slate-100 flex flex-col justify-start overflow-hidden">
@@ -843,7 +843,7 @@
           
           <!-- ① 1段目（スマホ画面の約3分の1を占める特大エージェント枠） -->
           <div id="avatarBoxWrapper" class="h-[31dvh] min-h-[175px] max-h-[280px] shrink-0 bg-white border-2 border-slate-200 rounded-xl p-1.5 flex items-center justify-center relative shadow-sm overflow-hidden">
-            <span class="absolute left-3 top-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider z-10">品質管理AI「AIReN」</span>
+            <span class="absolute left-3 top-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider z-10">品質管理AI「イコヌ」</span>
             <span id="avatarStatusText" class="absolute right-3 top-1.5 text-[11px] font-bold text-blue-600 font-mono z-10">● 待機中</span>
 
             <!-- MP3/音声の聞き直しボタン -->
@@ -883,7 +883,7 @@
               <canvas id="audioWaveCanvas" width="240" height="240" class="w-full h-full hidden"></canvas>
 
               <div id="blankBox" class="hidden text-center text-sm text-slate-400 font-mono">
-                [AIReN 音声ヒアリング]
+                [イコヌ 音声ヒアリング]
               </div>
             </div>
           </div>
@@ -918,7 +918,7 @@
           <!-- ④ 4段目（下部）: AIの質問文・チャット履歴 -->
           <div id="chatLogWrapper" class="flex-1 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm min-h-0 flex flex-col">
             <div class="bg-slate-100 px-3 py-1 border-b border-slate-200 text-[10px] font-bold text-slate-500 shrink-0">
-              AIReNからの質問・対話ログ（全4問）
+              イコヌからの質問・対話ログ（全4問）
             </div>
             <div id="chatMessages" class="flex-1 p-2.5 overflow-y-auto space-y-2 bg-slate-50">
             </div>
@@ -933,13 +933,13 @@
       <section id="screenSurvey" class="hidden p-4 sm:p-8 space-y-5">
         <div class="border-b border-slate-200 pb-3 text-center">
           <h2 class="text-xl sm:text-2xl font-bold text-slate-800">事後アンケート調査</h2>
-          <p class="text-xs text-slate-500 mt-1">AIReNとの対話について、あなたの率直な感覚をお答えください（1〜6の6段階評価）。</p>
+          <p class="text-xs text-slate-500 mt-1">イコヌとの対話について、あなたの率直な感覚をお答えください（1〜6の6段階評価）。</p>
         </div>
 
         <form id="formSurvey" class="space-y-5 max-w-2xl mx-auto">
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
-              Q1. AIReNからのヒアリングを受けている際、AIから『責められている』、あるいは『監視・品定めされている』ような圧迫感を感じましたか？
+              Q1. イコヌからのヒアリングを受けている際、AIから『責められている』、あるいは『監視・品定めされている』ような圧迫感を感じましたか？
             </label>
             <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
               <span>1: 全く感じなかった</span>
@@ -969,7 +969,7 @@
 
           <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2">
             <label class="block text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
-              Q2. AIReNとの対話において、自分のミスや手順の省略を正直に自己開示することについて、心理的なハードル（言いにくさや抵抗感）をどの程度感じましたか？
+              Q2. イコヌとの対話において、自分のミスや手順の省略を正直に自己開示することについて、心理的なハードル（言いにくさや抵抗感）をどの程度感じましたか？
             </label>
             <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
               <span>1: 非常に言いにくかった</span>
@@ -1085,7 +1085,7 @@
   </footer>
 
   <!-- ==========================================
-       JavaScript ロジック部 (vol.8 完全版)
+       JavaScript ロジック部 (最終版)
        ========================================== -->
   <script>
     // ==================== 設定 & 状態管理 ====================
@@ -1114,6 +1114,7 @@
       currentTutIndex: 0,
       tutToolUsed: false,
       tutCoachStep: 0,
+      isTaskRunning: false,
       isToolActive: false,
       chatStep: 0,
       speechSynth: window.speechSynthesis || null
@@ -1316,6 +1317,19 @@
 
     // ==================== MP3音声再生エンジン（自動フォールバック＆口パク・拍動連動） ====================
     const questionAudioFiles = ["q1.mp3", "q2.mp3", "q3.mp3", "q4.mp3"];
+    let preloadedAudioCache = [];
+
+    function preloadQuestionAudios() {
+      if (preloadedAudioCache.length > 0) return;
+      questionAudioFiles.forEach((src) => {
+        try {
+          const preAudio = new Audio(src);
+          preAudio.preload = "auto";
+          preAudio.load();
+          preloadedAudioCache.push(preAudio);
+        } catch (e) {}
+      });
+    }
     let activeAudioPlayer = null;
     let mouthAnimInterval = null;
     let waveActive = false;
@@ -1508,8 +1522,8 @@
           `URL指定: 条件${urlCond}`
         );
       } else {
-        const localSeq = parseInt(localStorage.getItem('airen_local_seq') || '0', 10);
-        localStorage.setItem('airen_local_seq', (localSeq + 1).toString());
+        const localSeq = parseInt(localStorage.getItem('ikonu_local_seq') || '0', 10);
+        localStorage.setItem('ikonu_local_seq', (localSeq + 1).toString());
         const fallbackCond = conditions[localSeq % 4];
         applyConditionRadio(
           fallbackCond,
@@ -1625,7 +1639,7 @@
       bindEvent('btnReplayQuestionAudio', 'click', () => {
         if (state.chatStep < chatQuestions.length) {
           const qText = chatQuestions[state.chatStep];
-          document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
+          document.getElementById('avatarStatusText').textContent = '🔊 イコヌ発話中...';
           playQuestionAudio(state.chatStep, qText, () => {
             document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
           }, true);
@@ -1669,7 +1683,7 @@
       bindEvent('btnEmergencySave', 'click', exportDataAsCSV);
 
       window.addEventListener('beforeunload', (e) => {
-        if (state.currentTrialIndex > 0 && state.currentTrialIndex < 50) {
+        if (state.isTaskRunning) {
           e.preventDefault();
           e.returnValue = '実験の途中です。離脱するとデータが失われます。';
         }
@@ -1715,7 +1729,9 @@
       const bub3 = document.getElementById('tutBubble3');
 
       [codeWrap, toolWrap, judgeWrap].forEach(el => {
-        if (el) el.classList.remove('coach-spotlight-gold', 'coach-spotlight-sky');
+        if (el) {
+          el.classList.remove('coach-spotlight-gold', 'coach-spotlight-sky', 'pointer-events-none');
+        }
       });
       [mag1, mag2, mag3, bub1, bub2, bub3].forEach(el => {
         if (el) el.classList.add('hidden');
@@ -1727,6 +1743,13 @@
       }
 
       if (backdrop) backdrop.classList.remove('hidden');
+      // コーチマーク表示中はスポットライト枠内の誤タップを無効化し、吹き出し内ボタンのみ操作可能にする
+      [codeWrap, toolWrap, judgeWrap].forEach(el => {
+        if (el) el.classList.add('pointer-events-none');
+      });
+      [bub1, bub2, bub3].forEach(b => {
+        if (b) b.classList.add('pointer-events-auto');
+      });
 
       if (step === 1) {
         codeWrap.classList.add('coach-spotlight-gold');
@@ -1887,6 +1910,8 @@
     }
 
     function startMainTask() {
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      state.isTaskRunning = true;
       state.currentTrialIndex = 0;
       state.taskTimeSpentSec = 0;
       state.taskToolSkipCount = 0;
@@ -2029,6 +2054,7 @@
 
     function resumeTaskAfterWarning() {
       document.getElementById('paceWarningModal').classList.add('hidden');
+      if (state.timerInterval) clearInterval(state.timerInterval);
       state.timerInterval = setInterval(() => {
         state.timeLeft--;
         state.taskTimeSpentSec++;
@@ -2049,6 +2075,8 @@
 
     // ==================== インシデント通達 ====================
     function finishMainTask() {
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      state.isTaskRunning = false;
       showScreen('screenAlert');
       document.getElementById('alertAnswered').textContent = `${state.taskTotalAnswered} / 50 件`;
 
@@ -2069,9 +2097,12 @@
         row.textContent = `問12: 発注[482-1937] 現品[482-1397] → 照合見落としによる誤出荷を検知`;
         listEl.appendChild(row);
       }
+
+      // 画面5表示中に q1.mp3〜q4.mp3 を事前プリロードして画面6遷移時の遅延を軽減
+      preloadQuestionAudios();
     }
 
-    // ==================== AIReN ヒアリング対話（全4問 ＋ MP3再生 ＋ 流し文字 ＋ 拍動波形） ====================
+    // ==================== イコヌ ヒアリング対話（全4問 ＋ MP3再生 ＋ 流し文字 ＋ 拍動波形） ====================
     const chatQuestions = [
       "どのように作業を進めていたか教えてください。",
       "何がエラーの原因だと思いますか？",
@@ -2141,10 +2172,10 @@
 
       const stepIdx = state.chatStep;
       const qText = chatQuestions[stepIdx];
-      appendChatMessage('airen', qText);
+      appendChatMessage('ikonu', qText);
       updateNicoTelop(stepIdx, qText);
 
-      document.getElementById('avatarStatusText').textContent = '🔊 AIReN発話中...';
+      document.getElementById('avatarStatusText').textContent = '🔊 イコヌ発話中...';
 
       playQuestionAudio(stepIdx, qText, () => {
         document.getElementById('avatarStatusText').textContent = '● 回答入力待ち';
@@ -2281,6 +2312,7 @@
     }
 
     function sendChatMessage() {
+      if (state.chatStep >= chatQuestions.length) return;
       const input = document.getElementById('inputChat');
       const text = input.value.trim();
 
@@ -2315,8 +2347,19 @@
     }
 
     // ==================== 事後アンケート & 自動送信 ====================
+    let isSurveySubmitting = false;
+
     function handleSurveySubmit(e) {
       e.preventDefault();
+      if (isSurveySubmitting) return;
+      isSurveySubmitting = true;
+
+      const btnSubmit = document.getElementById('btnSubmitSurvey');
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.classList.add('opacity-60', 'cursor-not-allowed');
+      }
+
       const form = e.target;
       state.surveyResponses.q1 = form.q1_blamed.value;
       state.surveyResponses.q2 = form.q2_honest.value;
@@ -2386,7 +2429,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `AIReN_Data_${state.participantId}_${state.condition}.csv`;
+      a.download = `Ikonu_Data_${state.participantId}_${state.condition}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
